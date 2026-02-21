@@ -4,8 +4,8 @@
 
 | Component | Details | Kernel Driver | Config Option |
 |-----------|---------|--------------|---------------|
-| **CPU** | Intel Xeon E5-1620 v2 to E5-2697 v2 (Ivy Bridge-EP) | — | `CONFIG_MIVYBRIDGE=y` |
-| **GPU** | 2x AMD FirePro D300/D500/D700 (GCN 1.1, Hawaii/Tahiti) | `amdgpu` | `CONFIG_DRM_AMDGPU=y`, `CONFIG_DRM_AMDGPU_CIK=y` |
+| **CPU** | Intel Xeon E5-1620 v2 to E5-2697 v2 (Ivy Bridge-EP) | — | Generic x86_64 (mainline has no Ivy Bridge-specific option) |
+| **GPU** | 2x AMD FirePro D300/D500/D700 (Tahiti XT, GCN 1.0 / Southern Islands, PCI `1002:6798`) | `amdgpu` | `CONFIG_DRM_AMDGPU=y`, `CONFIG_DRM_AMDGPU_SI=y` |
 | **Ethernet** | Broadcom BCM57762 Dual Gigabit | `tg3` | `CONFIG_TIGON3=y` |
 | **Wi-Fi** | Broadcom BCM4360 802.11ac | `b43`/`brcmfmac` | `CONFIG_B43=y` or `CONFIG_BRCMFMAC=y` |
 | **Audio** | Intel HDA + Cirrus Logic CS4206 | `snd_hda_intel` | `CONFIG_SND_HDA_INTEL=y`, `CONFIG_SND_HDA_CODEC_CIRRUS=y` |
@@ -17,12 +17,12 @@
 
 ## GPU Details
 
-The D700 is based on AMD's Hawaii GPU (same silicon as the Radeon R9 290X). It's GCN 1.1 (Sea Islands / CIK generation).
+The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). It's GCN 1.0 (Southern Islands). Despite Apple marketing referencing "FirePro D700", `lspci` identifies them as `1002:6798` and the amdgpu driver initializes them as TAHITI.
 
-- **Kernel driver:** `amdgpu` with CIK support (NOT the legacy `radeon` driver)
-- **Firmware:** `amdgpu/hawaii_ce.bin`, `hawaii_mc.bin`, `hawaii_me.bin`, `hawaii_mec.bin`, `hawaii_pfp.bin`, `hawaii_rlc.bin`, `hawaii_sdma.bin`, `hawaii_smc.bin`
+- **Kernel driver:** `amdgpu` with SI (Southern Islands) support — requires `CONFIG_DRM_AMDGPU_SI=y`
+- **Firmware:** `amdgpu/tahiti_ce.bin`, `tahiti_mc.bin`, `tahiti_me.bin`, `tahiti_pfp.bin`, `tahiti_rlc.bin`, `tahiti_smc.bin`, `tahiti_uvd.bin`, `vce_1_0_0.bin`
 - **Mesa driver:** `radeonsi` (OpenGL), `RADV` (Vulkan)
-- **Kernel 6.19:** Brings significant amdgpu improvements for GCN 1.1
+- **Kernel 6.19:** Mature amdgpu SI support
 
 ## Hardware Compatibility Matrix
 
@@ -75,8 +75,8 @@ The kernel config targets the D700 GPU variant. D300/D500 users may need to adju
 ## PCI Device IDs
 
 ```
-GPU 1:    1002:67b0 (AMD Hawaii XT)
-GPU 2:    1002:67b0 (AMD Hawaii XT)
+GPU 1:    1002:6798 (AMD Tahiti XT [FirePro D700])
+GPU 2:    1002:6798 (AMD Tahiti XT [FirePro D700])
 Audio 1:  1002:aac8 (AMD HDMI Audio)
 Audio 2:  1002:aac8 (AMD HDMI Audio)
 NIC:      14e4:16b4 (Broadcom BCM57762)

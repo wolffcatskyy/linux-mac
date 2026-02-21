@@ -3,7 +3,7 @@
 #
 # Target: Linux 6.19
 # CPU: Intel Xeon E5-1650 v2 Ivy Bridge-EP (6C/12T @ 3.5GHz)
-# GPU: Dual AMD FirePro D700 (Tahiti XT, GCN 1.0 — uses CIK path in amdgpu)
+# GPU: Dual AMD FirePro D700 (Tahiti XT, GCN 1.0 / Southern Islands, PCI 1002:6798)
 # RAM: 64GB ECC DDR3
 # Storage: Samsung Apple PCIe SSD (AHCI)
 # Network: Dual Broadcom BCM57762 GbE + BCM57761 (Thunderbolt)
@@ -176,11 +176,11 @@ CONFIG_FW_LOADER_COMPRESS_ZSTD=y
 # These are uncompressed during build if FW_LOADER_COMPRESS is set,
 # OR we can point to uncompressed copies. Using EXTRA_FIRMWARE with the
 # .bin names — the build system will search EXTRA_FIRMWARE_DIR for them.
-CONFIG_EXTRA_FIRMWARE="amdgpu/hawaii_ce.bin amdgpu/hawaii_mc.bin amdgpu/hawaii_me.bin amdgpu/hawaii_mec.bin amdgpu/hawaii_pfp.bin amdgpu/hawaii_rlc.bin amdgpu/hawaii_sdma.bin amdgpu/hawaii_sdma1.bin amdgpu/hawaii_smc.bin amdgpu/hawaii_uvd.bin amdgpu/hawaii_vce.bin"
+CONFIG_EXTRA_FIRMWARE="amdgpu/tahiti_ce.bin amdgpu/tahiti_mc.bin amdgpu/tahiti_me.bin amdgpu/tahiti_pfp.bin amdgpu/tahiti_rlc.bin amdgpu/tahiti_smc.bin amdgpu/tahiti_uvd.bin amdgpu/vce_1_0_0.bin"
 CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
 
 # ============================================================
-# GPU — AMD FirePro D700 (Tahiti XT, GCN 1.0 — CIK path in amdgpu)
+# GPU — AMD FirePro D700 (Tahiti XT, GCN 1.0 / Southern Islands)
 # ============================================================
 CONFIG_DRM=y
 CONFIG_DRM_AMDGPU=y
