@@ -31,14 +31,14 @@ A stock distro kernel ships with thousands of modules for hardware you'll never 
 
 | Model | Identifier | Status | Maintainer |
 |-------|-----------|--------|------------|
-| Mac Pro (Late 2013) | `MacPro6,1` | ✅ Active | @your-username |
+| Mac Pro (Late 2013) | `MacPro6,1` | ✅ Active | @wolffcatskyy |
 | *Your Mac here* | *submit a PR* | 🔜 | *you?* |
 
 ## Quick Start (Arch Linux)
 
 ```bash
 # Clone
-git clone https://github.com/your-username/linux-mac.git
+git clone https://github.com/wolffcatskyy/linux-mac.git
 cd linux-mac/packaging/arch
 
 # Build
