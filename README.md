@@ -31,6 +31,7 @@ A stock distro kernel ships with thousands of modules for hardware you'll never 
 
 | Model | Identifier | Status | Maintainer |
 |-------|-----------|--------|------------|
+| Mac Pro (Mid 2010 / Mid 2012) | `MacPro5,1` | 📋 Planned | community — [help wanted](configs/MacPro5,1/) |
 | Mac Pro (Late 2013) | `MacPro6,1` | ✅ Active | @wolffcatskyy |
 | *Your Mac here* | *submit a PR* | 🔜 | *you?* |
 
@@ -59,14 +60,16 @@ sudo pacman -U linux-macpro61-*.pkg.tar.zst
 ```
 linux-mac/
 ├── configs/
-│   └── MacPro6,1/
-│       ├── config              # kernel .config
-│       ├── README.md           # hardware matrix, what works
-│       ├── patches/            # model-specific kernel patches
-│       ├── sysctl.d/
-│       │   └── 99-macpro.conf  # performance tuning
-│       └── fan/
-│           └── macfanctld.conf # fan curve profiles
+│   ├── MacPro5,1/              # Mid 2010/2012 "Cheese Grater" (planned)
+│   ├── MacPro6,1/              # Late 2013 "Trash Can" (active)
+│   │   ├── config              # kernel .config
+│   │   ├── README.md           # hardware matrix, what works
+│   │   ├── patches/            # model-specific kernel patches
+│   │   ├── sysctl.d/
+│   │   │   └── 99-macpro.conf  # performance tuning
+│   │   └── fan/
+│   │       └── macfanctld.conf # fan curve profiles
+│   └── MacPro7,1/              # 2019 rack (planned)
 ├── packaging/
 │   ├── arch/
 │   │   └── PKGBUILD           # AUR-ready
