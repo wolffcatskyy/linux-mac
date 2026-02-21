@@ -4,11 +4,11 @@ Custom Linux kernels purpose-built for Apple Mac hardware. Minimal, performant, 
 
 ## 🔥 Headlines
 
-### 1. Run macOS Tahoe on Mac Pro 6,1 — Today
-OCLP doesn't support Tahoe on the 6,1 yet, and may never fully. This project does. macOS Tahoe runs in KVM/QEMU on a custom Linux kernel, right now, on your Mac Pro.
-
-### 2. A Supercharged Linux Purpose-Built for Your Mac Pro
+### 1. A Supercharged Linux Purpose-Built for Your Mac Pro
 Custom kernel tuned for the exact hardware — Ivy Bridge Xeon, dual FirePro D700s, 12 years of kernel improvements baked in. Faster boot, lower memory footprint, built-in drivers, no initramfs. Everything compiled for your specific CPU.
+
+### 2. Run macOS Tahoe on Mac Pro 6,1 — Today
+OCLP doesn't support Tahoe on the 6,1 yet, and may never fully. This project does. macOS Tahoe runs in KVM/QEMU on the custom Linux kernel above, right now, on your Mac Pro.
 
 ### 3. Eventually — macOS Virtualized Faster Than Bare Metal
 As the open-source PVG (ParavirtualizedGraphics) Linux host implementation matures, macOS in the VM gets full GPU acceleration through the Linux 6.19 amdgpu driver — which has had 9 years of improvements since Apple abandoned these GPUs. OCLP shims dead drivers. This project uses living ones.
