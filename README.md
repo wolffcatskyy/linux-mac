@@ -4,7 +4,7 @@ Custom Linux kernels purpose-built for Apple Mac hardware. Minimal, performant, 
 
 ## 🔥 Headlines
 
-### 1. A Supercharged Linux Purpose-Built for Your Mac Pro
+### 1. A Supercharged Linux Purpose-Built for Your Mac
 Custom kernel tuned for the exact hardware — Ivy Bridge Xeon, dual FirePro D700s, 12 years of kernel improvements baked in. Faster boot, lower memory footprint, built-in drivers, no initramfs. Everything compiled for your specific CPU.
 
 ### 2. Run macOS Tahoe on Mac Pro 6,1 — Today
