@@ -1,0 +1,33 @@
+# Build artifacts
+build/
+*.o
+*.ko
+*.mod
+*.mod.c
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+vmlinux
+vmlinuz
+bzImage
+System.map
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Package artifacts
+*.pkg.tar.zst
+*.pkg.tar.xz
+*.deb
+*.rpm
+src/
+pkg/

@@ -1,0 +1,205 @@
+# Maintainer: Your Name <your-email@example.com>
+# linux-mac: Custom kernel for Mac Pro 6,1
+
+pkgbase=linux-macpro61
+pkgver=6.19.0
+pkgrel=1
+pkgdesc='Custom Linux kernel for Mac Pro 6,1 — built-in drivers, no initramfs, tuned for Ivy Bridge-EP + dual D700'
+url='https://github.com/your-username/linux-mac'
+arch=(x86_64)
+license=(GPL-2.0-only)
+makedepends=(
+    bc
+    cpio
+    gettext
+    libelf
+    pahole
+    perl
+    python
+    tar
+    xz
+)
+options=(
+    !debug
+    !strip
+)
+
+# Kernel source + our config
+_major=${pkgver%%.*}
+_srcname=linux-${pkgver}
+source=(
+    "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.xz"
+    "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.sign"
+    "config"
+    "99-macpro.conf"
+)
+# Update these after downloading the actual source
+sha256sums=(
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
+)
+validpgpkeys=(
+    'ABAF11C65A2970B130ABE3C479BE3E4300411886'  # Linus Torvalds
+    '647F28654894E3BD457199BE38DBBDC86092693E'  # Greg Kroah-Hartman
+)
+
+export KBUILD_BUILD_HOST=macpro61
+export KBUILD_BUILD_USER=linux-mac
+
+prepare() {
+    cd "$_srcname"
+
+    echo "Setting version..."
+    echo "-macpro61" > localversion
+
+    echo "Copying config..."
+    cp "$srcdir/config" .config
+
+    # Apply patches if any exist
+    local src
+    for src in "${source[@]}"; do
+        src="${src%%::*}"
+        src="${src##*/}"
+        src="${src%.zst}"
+        [[ $src = *.patch ]] || continue
+        echo "Applying patch $src..."
+        patch -Np1 < "$srcdir/$src"
+    done
+
+    make olddefconfig
+
+    # Verify critical options are set
+    echo "Verifying config..."
+    grep -q "CONFIG_DRM_AMDGPU=y" .config || echo "WARNING: AMDGPU not built-in!"
+    grep -q "CONFIG_SENSORS_APPLESMC=y" .config || echo "WARNING: Apple SMC not built-in!"
+    grep -q "CONFIG_EFI_STUB=y" .config || echo "WARNING: EFI stub not enabled!"
+
+    make -s kernelrelease > version
+    echo "Prepared linux version: $(<version)"
+}
+
+build() {
+    cd "$_srcname"
+    make -j"$(nproc)" all
+}
+
+_package() {
+    pkgdesc="$pkgdesc - kernel and modules"
+    depends=(
+        coreutils
+        kmod
+    )
+    # No mkinitcpio dependency — everything is built-in
+    # No initramfs needed
+
+    cd "$_srcname"
+    local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
+
+    echo "Installing boot image..."
+    install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
+
+    # Used by mkinitcpio if someone insists on running it (they shouldn't need to)
+    echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
+
+    echo "Installing modules..."
+    # There should be very few since most are built-in
+    DEPMOD=/doesnt/exist make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
+        modules_install
+
+    # Remove build link (set in -headers package)
+    rm -f "$modulesdir/build"
+
+    echo "Installing sysctl config..."
+    install -Dm644 "$srcdir/99-macpro.conf" "$pkgdir/etc/sysctl.d/99-macpro.conf"
+
+    echo "Installing boot entry..."
+    install -Dm644 /dev/stdin "$pkgdir/boot/loader/entries/linux-macpro61.conf" <<EOF
+title   Arch Linux (Mac Pro 6,1 Kernel)
+linux   /vmlinuz-linux-macpro61
+options root=PARTUUID=XXXX-XXXX-XXXX rw
+EOF
+    echo "NOTE: Update PARTUUID in /boot/loader/entries/linux-macpro61.conf"
+}
+
+_package-headers() {
+    pkgdesc="$pkgdesc - headers and build files"
+    depends=("$pkgbase")
+
+    cd "$_srcname"
+    local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
+
+    echo "Installing build files..."
+    install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
+        localversion version vmlinux
+    install -Dt "$builddir/kernel" -m644 kernel/Makefile
+    install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
+    cp -t "$builddir" -a scripts
+
+    echo "Installing headers..."
+    cp -t "$builddir" -a include
+    cp -t "$builddir/arch/x86" -a arch/x86/include
+    install -Dt "$builddir/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+    install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
+    install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
+    install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+    install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+    install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+    install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+    install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 \
+        drivers/iio/common/hid-sensors/*.h
+
+    echo "Installing KConfig files..."
+    find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+
+    echo "Removing unneeded architectures..."
+    local arch
+    for arch in "$builddir"/arch/*/; do
+        [[ $arch = */x86/ ]] && continue
+        echo "  Removing $(basename "$arch")"
+        rm -r "$arch"
+    done
+
+    echo "Removing documentation..."
+    rm -r "$builddir/Documentation"
+
+    echo "Removing broken symlinks..."
+    find -L "$builddir" -type l -printf 'Removing %P\n' -delete
+
+    echo "Removing loose objects..."
+    find "$builddir" -type f -name '*.o' -printf 'Removing %P\n' -delete
+
+    echo "Stripping build tools..."
+    local file
+    while read -rd '' file; do
+        case "$(file -Sib "$file")" in
+            application/x-sharedlib\;*)
+                strip -v $STRIP_SHARED "$file" ;;
+            application/x-archive\;*)
+                strip -v $STRIP_STATIC "$file" ;;
+            application/x-executable\;*)
+                strip -v $STRIP_BINARIES "$file" ;;
+            application/x-pie-executable\;*)
+                strip -v $STRIP_BINARIES "$file" ;;
+        esac
+    done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+    echo "Stripping vmlinux..."
+    strip -v $STRIP_STATIC "$builddir/vmlinux"
+
+    echo "Adding symlink..."
+    mkdir -p "$pkgdir/usr/src"
+    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
+}
+
+pkgname=(
+    "$pkgbase"
+    "$pkgbase-headers"
+)
+for _p in "${pkgname[@]}"; do
+    eval "package_$_p() {
+        $(declare -f "_package${_p#$pkgbase}")
+        _package${_p#$pkgbase}
+    }"
+done
