@@ -13,7 +13,9 @@ OCLP doesn't support Tahoe on the 6,1 yet, and may never fully. This project doe
 ### 3. Eventually — macOS Virtualized Faster Than Bare Metal
 As the open-source PVG (ParavirtualizedGraphics) Linux host implementation matures, macOS in the VM gets full GPU acceleration through the Linux 6.19 amdgpu driver — which has had 9 years of improvements since Apple abandoned these GPUs. OCLP shims dead drivers. This project uses living ones.
 
-## Why?
+## Why Now?
+
+**Linux 6.19 is the inflection point.** The amdgpu driver has had 9 years of continuous upstream development since Apple abandoned these GPUs. GCN 1.0 support (the FirePro D700s in your Mac Pro) is now mature, stable, and performant — something that wasn't true even two kernel releases ago. Combine that with modern Wayland compositors, Mesa 25.x, and Vulkan support, and these "obsolete" Macs suddenly have better GPU support under Linux than they ever did under macOS with OCLP shimming dead kexts.
 
 Apple drops macOS support for older Intel Macs, but the hardware doesn't suddenly become useless. A 2013 Mac Pro is still a powerful machine — dual workstation GPUs, Xeon processor, 64GB RAM. The limiting factor is software support, not horsepower.
 
