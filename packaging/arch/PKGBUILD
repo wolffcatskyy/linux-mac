@@ -58,17 +58,14 @@ _decompress_firmware() {
     echo "Decompressing firmware blobs for built-in embedding..."
     local fw_dir="/lib/firmware"
     local blobs=(
-        amdgpu/hawaii_ce.bin
-        amdgpu/hawaii_mc.bin
-        amdgpu/hawaii_me.bin
-        amdgpu/hawaii_mec.bin
-        amdgpu/hawaii_pfp.bin
-        amdgpu/hawaii_rlc.bin
-        amdgpu/hawaii_sdma.bin
-        amdgpu/hawaii_sdma1.bin
-        amdgpu/hawaii_smc.bin
-        amdgpu/hawaii_uvd.bin
-        amdgpu/hawaii_vce.bin
+        amdgpu/tahiti_ce.bin
+        amdgpu/tahiti_mc.bin
+        amdgpu/tahiti_me.bin
+        amdgpu/tahiti_pfp.bin
+        amdgpu/tahiti_rlc.bin
+        amdgpu/tahiti_smc.bin
+        amdgpu/tahiti_uvd.bin
+        amdgpu/vce_1_0_0.bin
     )
 
     local staging="$srcdir/firmware"
