@@ -1,0 +1,1012 @@
+###############################################
+#  BASELINE BENCHMARK: Linux 6.19 Stock Kernel
+#  Mac Pro 5,1 (2010/2012)
+#  Date: 2026-02-21 12:03:15 PST
+#  Purpose: Pre-custom-kernel baseline
+###############################################
+
+========================================
+  1. SYSTEM INFORMATION
+  2026-02-21 12:03:15
+========================================
+
+--- uname -a ---
+Linux macpro 6.19.0 #1 SMP PREEMPT_DYNAMIC Thu Feb 12 22:49:52 PST 2026 x86_64 GNU/Linux
+
+--- lscpu ---
+Architecture:                            x86_64
+CPU op-mode(s):                          32-bit, 64-bit
+Address sizes:                           46 bits physical, 48 bits virtual
+Byte Order:                              Little Endian
+CPU(s):                                  12
+On-line CPU(s) list:                     0-11
+Vendor ID:                               GenuineIntel
+Model name:                              Intel(R) Xeon(R) CPU E5-1650 v2 @ 3.50GHz
+CPU family:                              6
+Model:                                   62
+Thread(s) per core:                      2
+Core(s) per socket:                      6
+Socket(s):                               1
+Stepping:                                4
+CPU(s) scaling MHz:                      92%
+CPU max MHz:                             3900.0000
+CPU min MHz:                             1200.0000
+BogoMIPS:                                7000.47
+Flags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm cpuid_fault epb pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid fsgsbase smep erms xsaveopt dtherm ida arat pln pts vnmi md_clear flush_l1d
+Virtualization:                          VT-x
+L1d cache:                               192 KiB (6 instances)
+L1i cache:                               192 KiB (6 instances)
+L2 cache:                                1.5 MiB (6 instances)
+L3 cache:                                12 MiB (1 instance)
+NUMA node(s):                            1
+NUMA node0 CPU(s):                       0-11
+Vulnerability Gather data sampling:      Not affected
+Vulnerability Ghostwrite:                Not affected
+Vulnerability Indirect target selection: Not affected
+Vulnerability Itlb multihit:             KVM: Mitigation: Split huge pages
+Vulnerability L1tf:                      Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable
+Vulnerability Mds:                       Mitigation; Clear CPU buffers; SMT vulnerable
+Vulnerability Meltdown:                  Mitigation; PTI
+Vulnerability Mmio stale data:           Not affected
+Vulnerability Old microcode:             Not affected
+Vulnerability Reg file data sampling:    Not affected
+Vulnerability Retbleed:                  Not affected
+Vulnerability Spec rstack overflow:      Not affected
+Vulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerability Srbds:                     Not affected
+Vulnerability Tsa:                       Not affected
+Vulnerability Tsx async abort:           Not affected
+Vulnerability Vmscape:                   Mitigation; IBPB before exit to userspace
+
+--- free -h ---
+               total        used        free      shared  buff/cache   available
+Mem:            62Gi        11Gi        43Gi        14Mi       8.3Gi        50Gi
+Swap:          8.0Gi          0B       8.0Gi
+
+--- lsblk ---
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0 465.9G  0 disk 
+|-sda1   8:1    0   512M  0 part /boot/efi
+`-sda2   8:2    0 465.4G  0 part /
+sdb      8:16   0 238.5G  0 disk 
+
+--- /proc/cmdline ---
+initrd=\initramfs-6.19.img root=/dev/sda2 rw quiet amdgpu.si_support=1 radeon.si_support=0 amdgpu.dc=0 video=efifb:off amdgpu.lockup_timeout=120000,600000,600000,600000 amdgpu.gpu_recovery=1 amdgpu.job_hang_limit=16 pcie_aspm=off amdgpu.dpm=0 acpi_mask_gpe=0x10000 acpi_enforce_resources=lax
+
+--- /proc/version ---
+Linux version 6.19.0 (michael@macpro) (gcc (GCC) 15.2.1 20260209, GNU ld (GNU Binutils) 2.46) #1 SMP PREEMPT_DYNAMIC Thu Feb 12 22:49:52 PST 2026
+
+
+========================================
+  2. BOOT TIME ANALYSIS
+  2026-02-21 12:03:15
+========================================
+
+--- systemd-analyze ---
+Startup finished in 14.303s (firmware) + 2.706s (loader) + 1.109s (kernel) + 4min 11.964s (initrd) + 1min 35.363s (userspace) = 6min 5.446s 
+graphical.target reached after 1min 35.330s in userspace.
+
+--- systemd-analyze blame (top 20) ---
+4min 12.116s dev-ttyS1.device
+4min 12.116s sys-devices-platform-serial8250-serial8250:0-serial8250:0.1-tty-ttyS1.device
+4min 12.111s dev-disk-by\x2dpartuuid-d3c0cf40\x2d2d61\x2d4f29\x2d8ba2\x2d68ab8601b145.device
+4min 12.111s dev-sda2.device
+4min 12.111s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart2.device
+4min 12.111s dev-disk-by\x2dpartlabel-root.device
+4min 12.110s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart-by\x2dpartuuid-d3c0cf40\x2d2d61\x2d4f29\x2d8ba2\x2d68ab8601b145.device
+4min 12.110s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart-by\x2dpartnum-2.device
+4min 12.110s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart-by\x2duuid-8ed66b95\x2df93a\x2d42a9\x2dab64\x2d9e25a70ce05f.device
+4min 12.110s dev-disk-by\x2ddiskseq-1\x2dpart2.device
+4min 12.110s sys-devices-pci0000:00-0000:00:1c.4-0000:0e:00.0-ata1-host0-target0:0:0-0:0:0:0-block-sda-sda2.device
+4min 12.110s dev-disk-by\x2duuid-8ed66b95\x2df93a\x2d42a9\x2dab64\x2d9e25a70ce05f.device
+4min 12.110s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart-by\x2dpartlabel-root.device
+4min 12.110s dev-disk-by\x2did-ata\x2dAPPLE_SSD_SM0512G_S217NYAGA00569\x2dpart2.device
+4min 12.110s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1\x2dpart2.device
+4min 12.110s dev-disk-by\x2did-wwn\x2d0x5002538900000000\x2dpart2.device
+4min 12.109s dev-ttyS2.device
+4min 12.109s sys-devices-platform-serial8250-serial8250:0-serial8250:0.2-tty-ttyS2.device
+4min 12.106s dev-disk-by\x2dpath-pci\x2d0000:0e:00.0\x2data\x2d1.0\x2dpart-by\x2dpartlabel-EFI.device
+4min 12.106s dev-disk-by\x2duuid-B7EB\x2d6C8C.device
+
+--- systemd-analyze critical-chain ---
+The time when unit became active or started is printed after the "@" character.
+The time the unit took to start is printed after the "+" character.
+
+graphical.target @1min 35.330s
+└─multi-user.target @1min 35.329s
+  └─libvirtd.service @1min 26.376s +91ms
+    └─network.target @1min 3.023s
+      └─NetworkManager.service @1min 910ms +2.112s
+        └─basic.target @1min 909ms
+          └─dbus-broker.service @1min 844ms +38ms
+            └─dbus.socket @1min 836ms +69us
+              └─sysinit.target @1min 836ms
+                └─systemd-vconsole-setup.service @1min 3.070s +39ms
+                  └─systemd-journald.socket
+                    └─system.slice
+                      └─-.slice
+
+
+========================================
+  3. CPU BENCHMARK
+  2026-02-21 12:03:42
+========================================
+
+--- sysbench cpu --threads=8 run (30s) ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  4190.84
+
+General statistics:
+    total time:                          30.0016s
+    total number of events:              125739
+
+Latency (ms):
+         min:                                    1.08
+         avg:                                    1.91
+         max:                                  126.28
+         95th percentile:                        4.25
+         sum:                               239918.03
+
+Threads fairness:
+    events (avg/stddev):           15717.3750/692.60
+    execution time (avg/stddev):   29.9898/0.00
+
+
+--- sysbench cpu --threads=1 run (30s, single-thread) ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:   788.89
+
+General statistics:
+    total time:                          30.0001s
+    total number of events:              23668
+
+Latency (ms):
+         min:                                    1.11
+         avg:                                    1.27
+         max:                                    3.84
+         95th percentile:                        1.32
+         sum:                                29980.39
+
+Threads fairness:
+    events (avg/stddev):           23668.0000/0.00
+    execution time (avg/stddev):   29.9804/0.00
+
+
+--- Compile benchmark (small C program) ---
+Compile time:
+
+real	0m0.131s
+user	0m0.098s
+sys	0m0.021s
+
+Execution time (single-threaded math, 100M iterations):
+Result: 0.447924
+
+real	0m3.628s
+user	0m3.604s
+sys	0m0.000s
+
+
+========================================
+  4. MEMORY BENCHMARK
+  2026-02-21 12:04:52
+========================================
+
+--- sysbench memory run (1 thread) ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1KiB
+  total size: 102400MiB
+  operation: write
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 40897877 (4089071.35 per second)
+
+39939.33 MiB transferred (3993.23 MiB/sec)
+
+
+General statistics:
+    total time:                          10.0001s
+    total number of events:              40897877
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    2.02
+         95th percentile:                        0.00
+         sum:                                 5390.24
+
+Threads fairness:
+    events (avg/stddev):           40897877.0000/0.00
+    execution time (avg/stddev):   5.3902/0.00
+
+
+--- sysbench memory run (8 threads) ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1KiB
+  total size: 102400MiB
+  operation: write
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 104857600 (11906319.26 per second)
+
+102400.00 MiB transferred (11627.26 MiB/sec)
+
+
+General statistics:
+    total time:                          8.8052s
+    total number of events:              104857600
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                   23.90
+         95th percentile:                        0.00
+         sum:                                47534.94
+
+Threads fairness:
+    events (avg/stddev):           13107200.0000/0.00
+    execution time (avg/stddev):   5.9419/0.16
+
+
+--- dd /dev/zero to /dev/null (raw memcpy speed) ---
+10000+0 records in
+10000+0 records out
+10485760000 bytes (10 GB, 9.8 GiB) copied, 0.692864 s, 15.1 GB/s
+
+real	0m0.696s
+user	0m0.016s
+sys	0m0.670s
+
+
+========================================
+  5. DISK I/O BENCHMARK
+  2026-02-21 12:05:21
+========================================
+
+--- Sequential write: dd 1GB to /tmp ---
+1024+0 records in
+1024+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.513242 s, 2.1 GB/s
+
+real	0m0.515s
+user	0m0.001s
+sys	0m0.504s
+
+--- Sequential read: dd 1GB from /tmp (cache dropped) ---
+1024+0 records in
+1024+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.164155 s, 6.5 GB/s
+
+real	0m0.166s
+user	0m0.003s
+sys	0m0.161s
+
+--- sysbench fileio prepare ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+128 files, 4096Kb each, 512Mb total
+Creating files for the test...
+Extra file open flags: (none)
+Creating file test_file.0
+Creating file test_file.1
+Creating file test_file.2
+Creating file test_file.3
+Creating file test_file.4
+Creating file test_file.5
+Creating file test_file.6
+Creating file test_file.7
+Creating file test_file.8
+Creating file test_file.9
+Creating file test_file.10
+Creating file test_file.11
+Creating file test_file.12
+Creating file test_file.13
+Creating file test_file.14
+Creating file test_file.15
+Creating file test_file.16
+Creating file test_file.17
+Creating file test_file.18
+Creating file test_file.19
+Creating file test_file.20
+Creating file test_file.21
+Creating file test_file.22
+Creating file test_file.23
+Creating file test_file.24
+Creating file test_file.25
+Creating file test_file.26
+Creating file test_file.27
+Creating file test_file.28
+Creating file test_file.29
+Creating file test_file.30
+Creating file test_file.31
+Creating file test_file.32
+Creating file test_file.33
+Creating file test_file.34
+Creating file test_file.35
+Creating file test_file.36
+Creating file test_file.37
+Creating file test_file.38
+Creating file test_file.39
+Creating file test_file.40
+Creating file test_file.41
+Creating file test_file.42
+Creating file test_file.43
+Creating file test_file.44
+Creating file test_file.45
+Creating file test_file.46
+Creating file test_file.47
+Creating file test_file.48
+Creating file test_file.49
+Creating file test_file.50
+Creating file test_file.51
+Creating file test_file.52
+Creating file test_file.53
+Creating file test_file.54
+Creating file test_file.55
+Creating file test_file.56
+Creating file test_file.57
+Creating file test_file.58
+Creating file test_file.59
+Creating file test_file.60
+Creating file test_file.61
+Creating file test_file.62
+Creating file test_file.63
+Creating file test_file.64
+Creating file test_file.65
+Creating file test_file.66
+Creating file test_file.67
+Creating file test_file.68
+Creating file test_file.69
+Creating file test_file.70
+Creating file test_file.71
+Creating file test_file.72
+Creating file test_file.73
+Creating file test_file.74
+Creating file test_file.75
+Creating file test_file.76
+Creating file test_file.77
+Creating file test_file.78
+Creating file test_file.79
+Creating file test_file.80
+Creating file test_file.81
+Creating file test_file.82
+Creating file test_file.83
+Creating file test_file.84
+Creating file test_file.85
+Creating file test_file.86
+Creating file test_file.87
+Creating file test_file.88
+Creating file test_file.89
+Creating file test_file.90
+Creating file test_file.91
+Creating file test_file.92
+Creating file test_file.93
+Creating file test_file.94
+Creating file test_file.95
+Creating file test_file.96
+Creating file test_file.97
+Creating file test_file.98
+Creating file test_file.99
+Creating file test_file.100
+Creating file test_file.101
+Creating file test_file.102
+Creating file test_file.103
+Creating file test_file.104
+Creating file test_file.105
+Creating file test_file.106
+Creating file test_file.107
+Creating file test_file.108
+Creating file test_file.109
+Creating file test_file.110
+Creating file test_file.111
+Creating file test_file.112
+Creating file test_file.113
+Creating file test_file.114
+Creating file test_file.115
+Creating file test_file.116
+Creating file test_file.117
+Creating file test_file.118
+Creating file test_file.119
+Creating file test_file.120
+Creating file test_file.121
+Creating file test_file.122
+Creating file test_file.123
+Creating file test_file.124
+Creating file test_file.125
+Creating file test_file.126
+Creating file test_file.127
+536870912 bytes written in 0.30 seconds (1681.61 MiB/sec).
+
+--- sysbench fileio sequential write ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 4MiB each
+512MiB total file size
+Block size 16KiB
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing sequential write (creation) test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      0.00
+    writes/s:                     180241.77
+    fsyncs/s:                     230716.12
+
+Throughput:
+    read, MiB/s:                  0.00
+    written, MiB/s:               2816.28
+
+General statistics:
+    total time:                          10.0001s
+    total number of events:              4110204
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    2.04
+         95th percentile:                        0.00
+         sum:                                 9020.42
+
+Threads fairness:
+    events (avg/stddev):           4110204.0000/0.00
+    execution time (avg/stddev):   9.0204/0.00
+
+
+--- sysbench fileio sequential read ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 4MiB each
+512MiB total file size
+Block size 16KiB
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing sequential read test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      272096.54
+    writes/s:                     0.00
+    fsyncs/s:                     0.00
+
+Throughput:
+    read, MiB/s:                  4251.51
+    written, MiB/s:               0.00
+
+General statistics:
+    total time:                          10.0001s
+    total number of events:              2721443
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    0.06
+         95th percentile:                        0.00
+         sum:                                 9387.20
+
+Threads fairness:
+    events (avg/stddev):           2721443.0000/0.00
+    execution time (avg/stddev):   9.3872/0.00
+
+
+--- sysbench fileio random read/write ---
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 4MiB each
+512MiB total file size
+Block size 16KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random r/w test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      79754.05
+    writes/s:                     53169.30
+    fsyncs/s:                     170144.96
+
+Throughput:
+    read, MiB/s:                  1246.16
+    written, MiB/s:               830.77
+
+General statistics:
+    total time:                          10.0001s
+    total number of events:              3031108
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    2.03
+         95th percentile:                        0.01
+         sum:                                 9180.37
+
+Threads fairness:
+    events (avg/stddev):           3031108.0000/0.00
+    execution time (avg/stddev):   9.1804/0.00
+
+
+sysbench 1.0.20 (using system LuaJIT 2.1.1720049189)
+
+Removing test files...
+
+
+========================================
+  6. KERNEL MODULES
+  2026-02-21 12:06:18
+========================================
+
+Total loaded modules: 135
+
+--- lsmod ---
+Module                  Size  Used by
+snd_seq_dummy          12288  0
+snd_hrtimer            12288  1
+snd_seq               135168  7 snd_seq_dummy
+xt_MASQUERADE          16384  2
+xt_tcpudp              20480  2
+xt_mark                12288  6
+rpcsec_gss_krb5        40960  0
+auth_rpcgss           192512  1 rpcsec_gss_krb5
+nfsv4                1351680  0
+dns_resolver           16384  1 nfsv4
+nfs                   712704  1 nfsv4
+lockd                 192512  1 nfs
+cdc_mbim               20480  0
+grace                  16384  1 lockd
+cdc_wdm                36864  1 cdc_mbim
+nfs_localio            40960  1 nfs
+cdc_ncm                53248  1 cdc_mbim
+cdc_ether              28672  1 cdc_ncm
+usbnet                 65536  3 cdc_mbim,cdc_ncm,cdc_ether
+sunrpc                892928  6 nfs_localio,nfsv4,auth_rpcgss,lockd,rpcsec_gss_krb5,nfs
+netfs                 626688  1 nfs
+uvcvideo              176128  0
+snd_usb_audio         602112  1
+videobuf2_vmalloc      20480  1 uvcvideo
+uvc                    12288  1 uvcvideo
+videobuf2_memops       16384  1 videobuf2_vmalloc
+videobuf2_v4l2         40960  1 uvcvideo
+videobuf2_common       94208  4 videobuf2_vmalloc,videobuf2_v4l2,uvcvideo,videobuf2_memops
+snd_usbmidi_lib        53248  1 snd_usb_audio
+snd_ump                40960  1 snd_usb_audio
+videodev              405504  2 videobuf2_v4l2,uvcvideo
+snd_rawmidi            53248  2 snd_usbmidi_lib,snd_ump
+thunderbolt           589824  0
+snd_seq_device         16384  3 snd_seq,snd_ump,snd_rawmidi
+r8152                 163840  0
+mc                     94208  5 videodev,snd_usb_audio,videobuf2_v4l2,uvcvideo,videobuf2_common
+mii                    16384  2 usbnet,r8152
+firewire_ohci          69632  0
+tun                    73728  2
+nf_tables             397312  0
+ip6table_nat           12288  1
+ip6table_filter        12288  1
+ip6_tables             36864  2 ip6table_filter,ip6table_nat
+iptable_nat            12288  1
+nf_nat                 61440  3 ip6table_nat,iptable_nat,xt_MASQUERADE
+nf_conntrack          196608  2 nf_nat,xt_MASQUERADE
+nf_defrag_ipv6         24576  1 nf_conntrack
+nf_defrag_ipv4         12288  1 nf_conntrack
+iptable_filter         12288  1
+ip_tables              36864  2 iptable_filter,iptable_nat
+x_tables               65536  9 ip6table_filter,iptable_filter,ip6table_nat,xt_tcpudp,ip6_tables,ip_tables,iptable_nat,xt_MASQUERADE,xt_mark
+vfat                   28672  1
+fat                   114688  1 vfat
+amdgpu              16252928  30
+intel_rapl_msr         20480  0
+intel_rapl_common      53248  1 intel_rapl_msr
+sb_edac                57344  0
+x86_pkg_temp_thermal    16384  0
+intel_powerclamp       24576  0
+coretemp               20480  0
+kvm_intel             512000  0
+btusb                  81920  0
+btmtk                  32768  1 btusb
+btrtl                  36864  1 btusb
+btbcm                  24576  1 btusb
+btintel                73728  1 btusb
+kvm                  1437696  1 kvm_intel
+bluetooth            1196032  6 btrtl,btmtk,btintel,btbcm,btusb
+joydev                 28672  0
+snd_hda_codec_cs420x    16384  1
+snd_hda_codec_generic   114688  1 snd_hda_codec_cs420x
+snd_hda_codec_atihdmi    20480  2
+snd_hda_codec_hdmi     61440  1 snd_hda_codec_atihdmi
+snd_hda_intel          73728  3
+irqbypass              16384  1 kvm
+ghash_clmulni_intel    12288  0
+snd_hda_codec         217088  5 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_codec_cs420x,snd_hda_intel,snd_hda_codec_atihdmi
+tg3                   233472  0
+aesni_intel           102400  0
+rapl                   20480  0
+intel_cstate           20480  0
+libphy                184320  2 tg3,r8152
+snd_hda_core          151552  6 snd_hda_codec_generic,snd_hda_codec_hdmi,snd_hda_codec_cs420x,snd_hda_intel,snd_hda_codec,snd_hda_codec_atihdmi
+rfkill                 45056  2 bluetooth
+at24                   28672  0
+snd_intel_dspcfg       49152  1 snd_hda_intel
+applesmc               32768  0
+snd_intel_sdw_acpi     16384  1 snd_intel_dspcfg
+intel_uncore          270336  0
+mdio_bus               65536  2 libphy,tg3
+snd_hwdep              24576  2 snd_usb_audio,snd_hda_codec
+mei_me                 57344  0
+snd_pcm               212992  5 snd_hda_codec_hdmi,snd_hda_intel,snd_usb_audio,snd_hda_codec,snd_hda_core
+i2c_i801               40960  0
+ptp                    53248  1 tg3
+iTCO_wdt               16384  0
+pcspkr                 12288  0
+mei                   208896  1 mei_me
+intel_pmc_bxt          16384  1 iTCO_wdt
+i2c_smbus              20480  1 i2c_i801
+pps_core               32768  1 ptp
+iTCO_vendor_support    12288  1 iTCO_wdt
+i2c_mux                20480  1 i2c_i801
+snd_timer              57344  3 snd_seq,snd_hrtimer,snd_pcm
+snd                   155648  23 snd_hda_codec_generic,snd_seq,snd_seq_device,snd_hda_codec_hdmi,snd_hwdep,snd_hda_intel,snd_usb_audio,snd_usbmidi_lib,snd_hda_codec,snd_timer,snd_ump,snd_pcm,snd_rawmidi
+ioatdma                81920  0
+mousedev               28672  0
+soundcore              16384  1 snd
+dca                    20480  1 ioatdma
+apple_gmux             28672  0
+apple_mfi_fastcharge    16384  0
+mac_hid                12288  0
+amdxcp                 12288  1 amdgpu
+drm_panel_backlight_quirks    12288  1 amdgpu
+gpu_sched              69632  1 amdgpu
+drm_buddy              28672  1 amdgpu
+drm_exec               12288  1 amdgpu
+drm_suballoc_helper    16384  1 amdgpu
+drm_ttm_helper         20480  2 amdgpu
+ttm                   122880  2 amdgpu,drm_ttm_helper
+i2c_algo_bit           24576  1 amdgpu
+drm_display_helper    286720  1 amdgpu
+cec                    94208  2 drm_display_helper,amdgpu
+dm_mod                229376  0
+video                  81920  2 apple_gmux,amdgpu
+vmw_vmci              110592  0
+wmi                    32768  1 video
+crypto_user            12288  0
+nfnetlink              20480  2 nf_tables
+firewire_core         253952  1 firewire_ohci
+uas                    36864  0
+usb_storage            90112  1 uas
+lpc_ich                28672  0
+hid_multitouch         36864  0
+crc_itu_t              12288  1 firewire_core
+
+
+========================================
+  7. MEMORY USAGE AT IDLE
+  2026-02-21 12:06:18
+========================================
+
+--- free -m ---
+               total        used        free      shared  buff/cache   available
+Mem:           64268       11995       52248          14         654       52273
+Swap:           8191           0        8191
+
+--- Top 10 memory consumers ---
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+michael     1056  0.4  0.7 10436460 470696 ?     Ssl  05:48   1:50 openclaw-gateway
+michael    19794  2.3  0.3 3567568 232048 tty1   Sl+  11:58   0:11 Hyprland
+michael    48163  103  0.3 268332 219324 ?       R    12:06   0:02 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -I ./fs/xfs -I ./fs/xfs/libxfs -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="fs/xfs/xfs" -D KBUILD_BASENAME="xfs_inode_fork" -D KBUILD_MODNAME="xfs" -D __KBUILD_MODNAME=xfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/xfs/libxfs/.xfs_inode_fork.o.d fs/xfs/libxfs/xfs_inode_fork.c -quiet -dumpdir fs/xfs/libxfs/ -dumpbase xfs_inode_fork.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccZ294zU.s
+michael    22095  0.1  0.3 1409720 218788 tty1   Sl+  11:59   0:00 kitty
+michael    22173  0.1  0.3 1179940 206780 tty1   Sl+  11:59   0:00 kitty
+michael    19961  0.0  0.2 2262548 187592 tty1   Sl+  11:58   0:00 /usr/lib/xdg-desktop-portal-cosmic
+michael    48160 93.5  0.2 208368 185424 ?       R    12:06   0:01 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D MODULE -D KBUILD_BASENAME="direct" -D KBUILD_MODNAME="nfs" -D __KBUILD_MODNAME=nfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/nfs/.direct.o.d fs/nfs/direct.c -quiet -dumpdir fs/nfs/ -dumpbase direct.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/cc08PvMZ.s
+michael    19893  0.0  0.2 1029928 166640 tty1   Sl+  11:58   0:00 Xwayland :1 -rootless -core -listenfd 57 -listenfd 58 -displayfd 99 -wm 96
+michael     1055  0.0  0.2 2596448 150532 ?      Ssl  05:48   0:05 /home/michael/llama.cpp/build/bin/llama-server --model /home/michael/models/Llama-3.2-3B-Instruct-uncensored-Q4_K_M.gguf --host 0.0.0.0 --port 8081 --ctx-size 131072 -ngl 99 -sm layer --no-mmap
+
+--- Top 10 CPU consumers ---
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+michael    48309  200  0.0  63656 27004 ?        R    12:06   0:00 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="drivers/ata/libata" -D KBUILD_BASENAME="libata_trace" -D KBUILD_MODNAME="libata" -D __KBUILD_MODNAME=libata -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD drivers/ata/.libata-trace.o.d drivers/ata/libata-trace.c -quiet -dumpdir drivers/ata/ -dumpbase libata-trace.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccpL1nSr.s
+michael    48304  150  0.0  70340 33612 ?        R    12:06   0:00 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="fs/btrfs/btrfs" -D KBUILD_BASENAME="delayed_ref" -D KBUILD_MODNAME="btrfs" -D __KBUILD_MODNAME=btrfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/btrfs/.delayed-ref.o.d fs/btrfs/delayed-ref.c -quiet -dumpdir fs/btrfs/ -dumpbase delayed-ref.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused-const-variable=0 -Wformat-overflow=0 -Wformat-truncation=0 -Wno-override-init -Wextra -Wunused -Wno-unused-parameter -Wmissing-declarations -Wsuggest-attribute=format -Wmissing-prototypes -Wold-style-definition -Wmissing-include-dirs -Wunused-but-set-variable -Wunused-const-variable=2 -Wpacked-not-aligned -Wstringop-truncation -Wmaybe-uninitialized -Wno-missing-field-initializers -Wno-sign-compare -Wno-type-limits -Wno-shift-negative-value -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccbiXf5r.s
+michael    48274  109  0.0  78516 41408 ?        R    12:06   0:00 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="drivers/cdrom/cdrom" -D KBUILD_BASENAME="cdrom" -D KBUILD_MODNAME="cdrom" -D __KBUILD_MODNAME=cdrom -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD drivers/cdrom/.cdrom.o.d drivers/cdrom/cdrom.c -quiet -dumpdir drivers/cdrom/ -dumpbase cdrom.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccUU2mdA.s
+michael    48279  105  0.0  75976 38712 ?        R    12:06   0:00 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="drivers/scsi/scsi_mod" -D KBUILD_BASENAME="scsi_pm" -D KBUILD_MODNAME="scsi_mod" -D __KBUILD_MODNAME=scsi_mod -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD drivers/scsi/.scsi_pm.o.d drivers/scsi/scsi_pm.c -quiet -dumpdir drivers/scsi/ -dumpbase scsi_pm.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccpNjmZO.s
+michael    48163  101  0.3 275652 228672 ?       R    12:06   0:02 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -I ./fs/xfs -I ./fs/xfs/libxfs -D __KERNEL__ -D GCC_PLUGINS -D KBUILD_MODFILE="fs/xfs/xfs" -D KBUILD_BASENAME="xfs_inode_fork" -D KBUILD_MODNAME="xfs" -D __KBUILD_MODNAME=xfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/xfs/libxfs/.xfs_inode_fork.o.d fs/xfs/libxfs/xfs_inode_fork.c -quiet -dumpdir fs/xfs/libxfs/ -dumpbase xfs_inode_fork.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccZ294zU.s
+michael    48234 98.7  0.2 199544 160004 ?       R    12:06   0:01 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D MODULE -D KBUILD_BASENAME="pagelist" -D KBUILD_MODNAME="nfs" -D __KBUILD_MODNAME=nfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/nfs/.pagelist.o.d fs/nfs/pagelist.c -quiet -dumpdir fs/nfs/ -dumpbase pagelist.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccsC1hLR.s
+michael    48250 95.0  0.1 129952 110756 ?       R    12:06   0:01 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D MODULE -D KBUILD_BASENAME="core_device" -D KBUILD_MODNAME="firewire_core" -D __KBUILD_MODNAME=firewire_core -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD drivers/firewire/.core-device.o.d drivers/firewire/core-device.c -quiet -dumpdir drivers/firewire/ -dumpbase core-device.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/cc48DQrC.s
+michael    48262 94.8  0.1 110124 70656 ?        R    12:06   0:00 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D DEBUG -D MODULE -D KBUILD_BASENAME="tkip" -D KBUILD_MODNAME="mac80211" -D __KBUILD_MODNAME=mac80211 -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD net/mac80211/.tkip.o.d net/mac80211/tkip.c -quiet -dumpdir net/mac80211/ -dumpbase tkip.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/ccXDeb4T.s
+michael    48160 92.9  0.2 208368 185864 ?       R    12:06   0:01 /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -nostdinc -I ./arch/x86/include -I ./arch/x86/include/generated -I ./include -I ./include -I ./arch/x86/include/uapi -I ./arch/x86/include/generated/uapi -I ./include/uapi -I ./include/generated/uapi -D __KERNEL__ -D GCC_PLUGINS -D MODULE -D KBUILD_BASENAME="direct" -D KBUILD_MODNAME="nfs" -D __KBUILD_MODNAME=nfs -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -MMD fs/nfs/.direct.o.d fs/nfs/direct.c -quiet -dumpdir fs/nfs/ -dumpbase direct.c -dumpbase-ext .c -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -mno-sse4a -m64 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -march=x86-64 -mtune=generic -mno-red-zone -mcmodel=kernel -mstack-protector-guard-reg=gs -mstack-protector-guard-symbol=__ref_stack_chk_guard -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -O2 -Wall -Wextra -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=2048 -Wno-main -Wdangling-pointer=0 -Wvla-larger-than=1 -Wno-pointer-sign -Wcast-function-type -Wno-unterminated-string-initialization -Warray-bounds=0 -Wstringop-overflow=0 -Walloc-size-larger-than=18446744073709551615EiB -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wunused -Wno-unused-but-set-variable -Wunused-const-variable=0 -Wno-packed-not-aligned -Wformat-overflow=0 -Wformat-truncation=0 -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -fcf-protection=branch -falign-jumps=1 -falign-loops=1 -fno-asynchronous-unwind-tables -fno-jump-tables -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -fno-allow-store-data-races -fstack-protector-strong -fomit-frame-pointer -ftrivial-auto-var-init=zero -fzero-init-padding-bits=all -fno-stack-clash-protection -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fms-extensions -fno-strict-overflow -fstack-check=no -fconserve-stack -fno-builtin-wcslen -o /tmp/cc08PvMZ.s
+
+Total processes: 1397
+
+
+========================================
+  8. GPU INFORMATION
+  2026-02-21 12:06:19
+========================================
+
+--- lspci GPU ---
+02:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] Tahiti XT [Radeon HD 7970/8970 OEM / R9 280X]
+06:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] Tahiti XT [Radeon HD 7970/8970 OEM / R9 280X]
+
+--- GPU kernel driver ---
+02:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] Tahiti XT [Radeon HD 7970/8970 OEM / R9 280X]
+	Subsystem: Apple Inc. FirePro D700
+	Kernel driver in use: amdgpu
+	Kernel modules: radeon, amdgpu
+--
+06:00.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] Tahiti XT [Radeon HD 7970/8970 OEM / R9 280X]
+	Subsystem: Apple Inc. FirePro D700
+	Kernel driver in use: amdgpu
+	Kernel modules: radeon, amdgpu
+
+--- glxinfo ---
+glxinfo not installed
+
+--- vulkaninfo ---
+'DISPLAY' environment variable not set... skipping surface info
+==========
+VULKANINFO
+==========
+
+Vulkan Instance Version: 1.4.341
+
+
+Instance Extensions: count = 25
+-------------------------------
+VK_EXT_acquire_drm_display             : extension revision 1
+VK_EXT_acquire_xlib_display            : extension revision 1
+VK_EXT_debug_report                    : extension revision 10
+VK_EXT_debug_utils                     : extension revision 2
+VK_EXT_direct_mode_display             : extension revision 1
+VK_EXT_display_surface_counter         : extension revision 1
+VK_EXT_headless_surface                : extension revision 1
+VK_EXT_layer_settings                  : extension revision 2
+VK_EXT_surface_maintenance1            : extension revision 1
+VK_EXT_swapchain_colorspace            : extension revision 5
+VK_KHR_device_group_creation           : extension revision 1
+VK_KHR_display                         : extension revision 23
+VK_KHR_external_fence_capabilities     : extension revision 1
+VK_KHR_external_memory_capabilities    : extension revision 1
+VK_KHR_external_semaphore_capabilities : extension revision 1
+VK_KHR_get_display_properties2         : extension revision 1
+VK_KHR_get_physical_device_properties2 : extension revision 2
+VK_KHR_get_surface_capabilities2       : extension revision 1
+VK_KHR_portability_enumeration         : extension revision 1
+VK_KHR_surface                         : extension revision 25
+VK_KHR_surface_protected_capabilities  : extension revision 1
+VK_KHR_wayland_surface                 : extension revision 6
+VK_KHR_xcb_surface                     : extension revision 6
+VK_KHR_xlib_surface                    : extension revision 6
+VK_LUNARG_direct_driver_loading        : extension revision 1
+
+Instance Layers: count = 2
+--------------------------
+VK_LAYER_MESA_anti_lag      Open-source implementation of the VK_AMD_anti_lag extension. 1.4.303  version 1
+VK_LAYER_MESA_device_select Linux device selection layer                                 1.4.303  version 1
+
+Devices:
+========
+GPU0:
+	apiVersion         = 1.3.328
+	driverVersion      = 25.3.5
+	vendorID           = 0x1002
+	deviceID           = 0x6798
+	deviceType         = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	deviceName         = AMD Radeon R9 200 / HD 7900 Series (RADV TAHITI)
+	driverID           = DRIVER_ID_MESA_RADV
+	driverName         = radv
+	driverInfo         = Mesa 25.3.5-arch1.1
+	conformanceVersion = 1.4.0.0
+	deviceUUID         = 00000000-0600-0000-0000-000000000000
+	driverUUID         = 414d442d-4d45-5341-2d44-525600000000
+GPU1:
+	apiVersion         = 1.3.328
+	driverVersion      = 25.3.5
+	vendorID           = 0x1002
+	deviceID           = 0x6798
+	deviceType         = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	deviceName         = AMD Radeon R9 200 / HD 7900 Series (RADV TAHITI)
+	driverID           = DRIVER_ID_MESA_RADV
+	driverName         = radv
+	driverInfo         = Mesa 25.3.5-arch1.1
+	conformanceVersion = 1.4.0.0
+	deviceUUID         = 00000000-0200-0000-0000-000000000000
+	driverUUID         = 414d442d-4d45-5341-2d44-525600000000
+
+
+========================================
+  9. NETWORK
+  2026-02-21 12:06:19
+========================================
+
+--- Interface speeds ---
+enp11s0: -1 Mbps
+enp12s0: -1 Mbps
+enp18s0u4: 2500 Mbps
+enp28s0: -1 Mbps
+lo: N/A Mbps
+tailscale0: -1 Mbps
+
+--- ip link show ---
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp28s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether 68:5b:35:c9:83:df brd ff:ff:ff:ff:ff:ff
+    altname enx685b35c983df
+3: enp11s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether 00:3e:e1:c6:b9:66 brd ff:ff:ff:ff:ff:ff
+    altname enx003ee1c6b966
+4: enp12s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000
+    link/ether 00:3e:e1:c6:b9:67 brd ff:ff:ff:ff:ff:ff
+    altname enx003ee1c6b967
+5: tailscale0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN mode DEFAULT group default qlen 500
+    link/none 
+6: enp18s0u4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 00:e0:4c:68:00:1a brd ff:ff:ff:ff:ff:ff
+    altname enx00e04c68001a
+
+--- Primary interface ethtool ---
+Primary interface: enp18s0u4
+bash: line 110: ethtool: command not found
+ethtool not available
+
+--- iperf3 to NAS (192.168.18.10, 10s) ---
+iperf3: error - unable to connect to server - server may have stopped running or use a different port, firewall issue, etc.: Connection refused
+iperf3 failed (no server on NAS or connection refused)
+
+
+========================================
+  10. ADDITIONAL SYSTEM METRICS
+  2026-02-21 12:06:19
+========================================
+
+--- uptime ---
+ 12:06:19 up  6:23,  6 users,  load average: 1037.27, 1033.35, 1028.29
+
+--- df -h ---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       458G  224G  211G  52% /
+devtmpfs         32G     0   32G   0% /dev
+tmpfs            32G  508K   32G   1% /dev/shm
+tmpfs            13G  2.0M   13G   1% /run
+none            1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+tmpfs            32G   11M   32G   1% /tmp
+/dev/sda1       511M   93M  419M  19% /boot/efi
+tmpfs           6.3G  148K  6.3G   1% /run/user/1000
+
+--- /proc/interrupts line count ---
+Total interrupt lines: 88
+
+--- dmesg (first 30 lines) ---
+
+--- Kernel config highlights ---
+CONFIG_PREEMPT settings:
+CONFIG_PREEMPT_BUILD=y
+# CONFIG_PREEMPT_NONE is not set
+# CONFIG_PREEMPT_VOLUNTARY is not set
+CONFIG_PREEMPT=y
+# CONFIG_PREEMPT_LAZY is not set
+CONFIG_PREEMPT_COUNT=y
+CONFIG_PREEMPTION=y
+CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_PREEMPT_RCU=y
+CONFIG_PREEMPT_NOTIFIERS=y
+# CONFIG_PREEMPT_TRACER is not set
+# CONFIG_PREEMPTIRQ_DELAY_TEST is not set
+
+CONFIG_HZ:
+# CONFIG_HZ_PERIODIC is not set
+# CONFIG_HZ_100 is not set
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+CONFIG_HZ_1000=y
+CONFIG_HZ=1000
+
+CONFIG_NO_HZ:
+CONFIG_NO_HZ_COMMON=y
+# CONFIG_NO_HZ_IDLE is not set
+CONFIG_NO_HZ_FULL=y
+CONFIG_NO_HZ=y
+
+Scheduler config:
+CONFIG_SCHED_CORE=y
+CONFIG_SCHED_CLASS_EXT=y
+CONFIG_FAIR_GROUP_SCHED=y
+CONFIG_SCHED_MM_CID=y
+CONFIG_SCHED_AUTOGROUP=y
+CONFIG_SCHED_OMIT_FRAME_POINTER=y
+CONFIG_SCHED_MC_PRIO=y
+CONFIG_SCHED_HRTICK=y
+CONFIG_SCHED_SMT=y
+CONFIG_SCHED_CLUSTER=y
+CONFIG_SCHED_MC=y
+CONFIG_SCHED_STACK_END_CHECK=y
+CONFIG_SCHED_INFO=y
+CONFIG_SCHEDSTATS=y
+CONFIG_SCHED_TRACER=y
+
+
+========================================
+  BENCHMARK COMPLETE
+  2026-02-21 12:06:19
+========================================
+
+All benchmarks completed at 2026-02-21 12:06:19 PST
+Results saved to: /home/michael/linux-mac/benchmarks/baseline-6.19-stock.txt
+File size: 64398 bytes, 1011 lines

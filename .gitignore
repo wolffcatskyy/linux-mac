@@ -31,3 +31,7 @@ Thumbs.db
 *.rpm
 src/
 pkg/
+
+# Kernel source tarballs (downloaded by makepkg)
+packaging/arch/linux-*.tar.xz
+packaging/arch/linux-*.tar.sign

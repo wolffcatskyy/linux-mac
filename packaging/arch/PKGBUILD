@@ -1,11 +1,11 @@
-# Maintainer: Your Name <your-email@example.com>
+# Maintainer: wolffcatskyy <furtive_pleas0z@icloud.com>
 # linux-mac: Custom kernel for Mac Pro 6,1
 
 pkgbase=linux-macpro61
 pkgver=6.19.0
 pkgrel=1
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — built-in drivers, no initramfs, tuned for Ivy Bridge-EP + dual D700'
-url='https://github.com/your-username/linux-mac'
+url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)
 makedepends=(
@@ -18,6 +18,7 @@ makedepends=(
     python
     tar
     xz
+    zstd
 )
 options=(
     !debug
@@ -25,15 +26,18 @@ options=(
 )
 
 # Kernel source + our config
+# NOTE: .0 releases on kernel.org don't include .0 in the filename
 _major=${pkgver%%.*}
-_srcname=linux-${pkgver}
+_minor=${pkgver#*.}
+_minor=${_minor%%.*}
+_srcver=${_major}.${_minor}
+_srcname=linux-${_srcver}
 source=(
     "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.xz"
     "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.sign"
     "config"
     "99-macpro.conf"
 )
-# Update these after downloading the actual source
 sha256sums=(
     'SKIP'
     'SKIP'
@@ -48,6 +52,41 @@ validpgpkeys=(
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac
 
+_decompress_firmware() {
+    # Arch linux-firmware ships .bin.zst files but EXTRA_FIRMWARE needs .bin
+    # Decompress any needed firmware blobs for built-in embedding
+    echo "Decompressing firmware blobs for built-in embedding..."
+    local fw_dir="/lib/firmware"
+    local blobs=(
+        amdgpu/hawaii_ce.bin
+        amdgpu/hawaii_mc.bin
+        amdgpu/hawaii_me.bin
+        amdgpu/hawaii_mec.bin
+        amdgpu/hawaii_pfp.bin
+        amdgpu/hawaii_rlc.bin
+        amdgpu/hawaii_sdma.bin
+        amdgpu/hawaii_sdma1.bin
+        amdgpu/hawaii_smc.bin
+        amdgpu/hawaii_uvd.bin
+        amdgpu/hawaii_vce.bin
+    )
+
+    local staging="$srcdir/firmware"
+    mkdir -p "$staging/amdgpu"
+
+    for blob in "${blobs[@]}"; do
+        if [[ -f "$fw_dir/$blob" ]]; then
+            cp "$fw_dir/$blob" "$staging/$blob"
+        elif [[ -f "$fw_dir/${blob}.zst" ]]; then
+            zstd -d "$(realpath "$fw_dir/${blob}.zst")" -o "$staging/$blob"
+        else
+            echo "WARNING: Firmware blob not found: $blob"
+        fi
+    done
+
+    echo "Firmware staged in $staging"
+}
+
 prepare() {
     cd "$_srcname"
 
@@ -56,6 +95,12 @@ prepare() {
 
     echo "Copying config..."
     cp "$srcdir/config" .config
+
+    # Decompress firmware for embedding
+    _decompress_firmware
+
+    # Point EXTRA_FIRMWARE_DIR to our staged decompressed firmware
+    sed -i "s|^CONFIG_EXTRA_FIRMWARE_DIR=.*|CONFIG_EXTRA_FIRMWARE_DIR=\"$srcdir/firmware\"|" .config
 
     # Apply patches if any exist
     local src
@@ -75,6 +120,10 @@ prepare() {
     grep -q "CONFIG_DRM_AMDGPU=y" .config || echo "WARNING: AMDGPU not built-in!"
     grep -q "CONFIG_SENSORS_APPLESMC=y" .config || echo "WARNING: Apple SMC not built-in!"
     grep -q "CONFIG_EFI_STUB=y" .config || echo "WARNING: EFI stub not enabled!"
+    grep -q "CONFIG_MODULES=y" .config || echo "WARNING: Modules not enabled!"
+    grep -q "CONFIG_TIGON3=y" .config || echo "WARNING: Broadcom NIC not built-in!"
+    grep -q "CONFIG_SATA_AHCI=y" .config || echo "WARNING: AHCI not built-in!"
+    grep -q "CONFIG_THUNDERBOLT=y" .config || echo "WARNING: Thunderbolt not built-in!"
 
     make -s kernelrelease > version
     echo "Prepared linux version: $(<version)"
@@ -104,7 +153,6 @@ _package() {
     echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
     echo "Installing modules..."
-    # There should be very few since most are built-in
     DEPMOD=/doesnt/exist make INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 \
         modules_install
 
