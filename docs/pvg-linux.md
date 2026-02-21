@@ -21,7 +21,9 @@ macOS Metal app → built-in PVG driver → apple-gfx-pci → Linux PVG host
   → Mesa radeonsi/RADV → amdgpu (kernel 6.19) → GPU
 ```
 
-The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 alone brings 25-40% improvements for GCN 1.1 GPUs. This isn't theoretical — the pipeline uses actively maintained, production drivers.
+The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 alone brings 25-40% improvements for GCN 1.1 GPUs.
+
+**Caveat:** The PVG command format between the guest driver and host framework is proprietary and undocumented. Building this pipeline requires reverse-engineering that protocol. The transport layer (how data moves) is documented in QEMU. The translation layer (what the GPU commands mean) is not. See "What's Known vs What's a Black Box" below.
 
 ## Architecture
 
@@ -61,22 +63,20 @@ The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 al
 
 ## What Exists Today
 
-### QEMU 10's apple-gfx-pci (GPL, public)
+### QEMU's apple-gfx-pci (GPL, public)
 
-Phil Dennis-Jordan's patches (14 revisions, merged into QEMU 10) implement the PCI device that bridges guest and host:
+Phil Dennis-Jordan's patches (16 revisions, merged into QEMU) implement the PCI device that bridges guest and host:
 
 - **PCI device:** Single memory-mapped BAR
 - **MMIO registers:** Command/status interface
-- **MSI interrupts:** Guest notification
+- **Interrupt delivery:** Guest notification mechanism
 - **Shared memory:** Callbacks for alloc/map/unmap/dealloc
 - **Display surface:** Framebuffer presentation path
-
-The QEMU source code (`hw/display/apple-gfx*`) is the Rosetta Stone — it documents the entire PVG protocol as implemented by Apple's framework on the host side.
 
 Source: `https://gitlab.com/qemu-project/qemu/-/tree/master/hw/display/`
 
 Key files:
-- `apple-gfx-pci.c` — PCI device registration, BAR setup, MMIO
+- `apple-gfx-pci.m` — PCI device registration, BAR setup, MMIO
 - `apple-gfx.m` — Host-side integration with Apple's framework (Objective-C)
 - `apple-gfx.h` — Shared structures and constants
 
@@ -84,82 +84,124 @@ Key files:
 
 Apple includes paravirtualized graphics drivers in macOS. These are used for macOS VMs on Apple Silicon but also work on x86_64 when the `apple-gfx-pci` device is present. **No custom kext installation needed.**
 
+### What's Known vs What's a Black Box
+
+This is important to be honest about.
+
+**Phil's QEMU code documents the plumbing** — PCI device setup, MMIO register layout, shared memory lifecycle, interrupt delivery, and framebuffer presentation. This is the transport layer.
+
+**Apple's `ParavirtualizedGraphics.framework` is a black box.** Phil described it himself: *"Data is exchanged via an undocumented, Apple-proprietary protocol. The PVG API only acts as a facilitator."* His QEMU code hands off opaque data to Apple's framework. The actual GPU command buffer format — how Metal commands are serialized over the wire, how textures/shaders/pipelines are encoded — is inside the framework, not in the QEMU source.
+
+This means:
+- ✅ We know how to set up the device and move data between guest and host
+- ✅ We know the display surface path (how rendered frames are presented)
+- ✅ We know shared memory management (alloc/map/unmap/dealloc)
+- ❌ We don't know the GPU command serialization format
+- ❌ We don't know the detailed semantics of the command stream
+
 ### What's Missing
 
-The host-side implementation on Linux. On macOS hosts, QEMU calls into `ParavirtualizedGraphics.framework`. On Linux, we need to:
+To build a Linux PVG host, we need two things:
 
-1. Receive PVG commands from the QEMU device
-2. Translate them to Mesa/Vulkan/OpenGL calls
-3. Execute on the host GPU via the Linux driver stack
-4. Return results (rendered frames, completion signals) to the guest
+1. **The transport layer (known):** Receive data from the QEMU device, manage shared memory, present display surfaces, deliver interrupts. Phil's code documents this.
+
+2. **The translation layer (unknown):** Decode the GPU command stream that macOS sends, translate it to Mesa/Vulkan/OpenGL calls, execute on the host GPU. This requires reverse-engineering Apple's proprietary protocol.
+
+The translation layer is the hard part. But it's not impossible — see the approach below.
 
 ## Protocol Analysis (from QEMU source)
 
-The PVG protocol, as documented in QEMU 10's apple-gfx implementation:
+What the QEMU source reveals about the transport layer:
 
-### Memory Management
+### Memory Management (documented)
 - `PVGMemoryMap` — Guest requests shared memory mapping
 - `PVGMemoryUnmap` — Guest releases mapping
 - Host manages a pool of shared buffers accessible to both guest and host GPU
 
-### Command Submission
-- Guest submits GPU command buffers via MMIO writes
-- Commands are Metal-encoded on the guest side
-- Host must decode and re-encode for its own GPU API
-
-### Display Path
+### Display Path (documented)
 - Guest renders to a surface
 - Host presents the surface (blit to screen or compose with other windows)
 - MMIO-based signaling for vsync/flip
 
-### Synchronization
-- MSI interrupts for host → guest notification
+### Synchronization (documented)
+- Interrupt delivery for host → guest notification
 - MMIO polling/registers for guest → host signaling
-- Fence objects for GPU command completion
+
+### Command Submission (black box)
+- Guest submits GPU command buffers via shared memory
+- Commands are Metal-encoded on the guest side
+- **The format of these commands is proprietary and undocumented**
+- On macOS hosts, Apple's framework decodes them — on Linux, we'd need to reverse-engineer this
+
+## Approaches to Reverse-Engineering the Command Format
+
+### Traffic Capture
+Run a macOS VM on a **macOS host** (where Apple's framework works), instrument Phil's QEMU device to log every MMIO write and shared memory operation. Run known Metal workloads, capture what goes over the wire. Correlate inputs with observed GPU behavior.
+
+### Guest Driver Analysis
+The PVG guest drivers ship with macOS. Static analysis of the guest-side kext could reveal the serialization format from the sender's perspective.
+
+### Incremental Approach
+The macOS WindowServer/compositor likely uses a simpler subset of the protocol than full Metal apps. If we can crack just the 2D compositing commands, the desktop gets fast even if arbitrary Metal apps don't work yet. This is the most practical early target.
 
 ## Implementation Phases
 
 ### Phase A: Protocol Documentation
-- Read all 14 revisions of Phil Dennis-Jordan's QEMU patches
-- Document every MMIO register, every callback, every shared memory operation
-- Produce a standalone protocol specification
+- Document everything Phil's QEMU code reveals about the transport layer
+- Map every MMIO register, callback, shared memory operation
+- Produce a standalone transport specification
 - **No code needed — pure documentation**
 
-### Phase B: Stub Host Implementation
-- Implement a Linux-side PVG host that responds to the protocol
-- Accept memory mappings, acknowledge commands
-- Return a blank or solid-color framebuffer
-- Proves the communication path works end-to-end
+### Phase B: Traffic Capture & Analysis
+- Run macOS VM on macOS host with instrumented QEMU device
+- Log all MMIO writes, shared memory operations, interrupt patterns
+- Run known Metal workloads (simple clear, textured quad, compositor)
+- Build a corpus of captured protocol traffic
+- Begin identifying patterns in the command stream
 
-### Phase C: Software Renderer
-- Decode PVG command buffers
-- Execute via llvmpipe (Mesa software renderer)
-- Slow but functionally complete
-- Guest macOS gets a "GPU" that actually works
+### Phase C: Transport Layer Implementation
+- Implement the Linux-side transport: PCI device setup, shared memory, interrupts
+- Accept memory mappings, acknowledge device initialization
+- Forward display surfaces to host display (framebuffer only)
+- Proves the communication path works end-to-end on Linux
+- **Delivers value immediately:** faster framebuffer presentation via host GPU
 
-### Phase D: Hardware Acceleration
-- Replace llvmpipe with radeonsi (OpenGL) or RADV (Vulkan)
-- Commands execute on host GPU hardware
-- Full Metal support in macOS guest
-- This is where "faster than OCLP" becomes real
+### Phase D: Compositor Acceleration
+- Focus on reverse-engineering WindowServer/compositor commands
+- The compositor likely uses a smaller, simpler subset of the protocol
+- Implement just enough translation to accelerate desktop compositing
+- macOS desktop becomes smooth even without full Metal support
+- **This is the realistic near-term goal**
 
-### Phase E: Optimization
+### Phase E: Broader Metal Support (long-term)
+- Progressively decode more of the command buffer format
+- Translate Metal commands to Vulkan via Mesa RADV
+- Full 3D app support is the end goal but may take significant effort
+- Could be accelerated if Apple ever documents the protocol or someone reverse-engineers the framework
+
+### Phase F: Optimization
 - Reduce host ↔ guest copies
 - Zero-copy shared memory where possible
 - Batch command submission
 - Async presentation pipeline
 
-## Why This Is Tractable
+## Why This Is Tractable (with caveats)
 
-1. **Protocol is documented** — QEMU 10's GPL source code shows exactly how Apple's framework interacts with the PCI device. 14 revisions of public code review means the interface is well-understood.
+**What's straightforward:**
+1. **Transport layer is documented** — Phil's QEMU code shows device setup, shared memory, interrupts, and display surfaces. Reimplementing this on Linux is well-scoped engineering.
+2. **Guest side is done** — macOS ships the drivers. No custom kext needed.
+3. **Display path acceleration is achievable** — Even without understanding GPU commands, faster framebuffer presentation through the host GPU delivers real improvement.
 
-2. **Guest side is done** — macOS ships the drivers. We don't need to write a kext or hack the guest at all.
+**What's hard:**
+1. **GPU command format is proprietary** — Apple's `ParavirtualizedGraphics.framework` is a black box. The actual command serialization format is undocumented.
+2. **Reverse-engineering takes time** — Traffic capture and analysis is the path, but it's iterative and slow.
+3. **Full Metal translation is ambitious** — Going from proprietary Metal command buffers to Vulkan/OpenGL is a significant reverse-engineering effort.
 
-3. **Scope is bounded** — We're implementing one side of a documented protocol. The hard research (designing the protocol) was done by Apple and documented by Phil's QEMU patches.
-
-4. **Mesa is the target** — Mesa has extensive documentation, stable APIs, and active maintenance. radeonsi and RADV are mature.
-
-5. **Incremental value** — Each phase delivers something useful. Phase B proves feasibility. Phase C gives functional (slow) GPU. Phase D gives fast GPU.
+**Why it's still worth pursuing:**
+- Each phase delivers value independently. Phase C (transport + display) improves macOS VM experience without solving the command format.
+- The compositor subset is likely much simpler than full Metal. Cracking that alone makes the desktop fast.
+- This is the kind of problem that attracts smart contributors once there's a working foundation to build on.
+- If Apple ever opens PVG (unlikely but not impossible) or someone reverse-engineers the framework, the transport layer is ready.
 
 ## Benefits Beyond Mac Pro 6,1
 

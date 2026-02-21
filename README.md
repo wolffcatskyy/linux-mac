@@ -10,8 +10,8 @@ Custom kernel tuned for the exact hardware — Ivy Bridge Xeon, dual FirePro D70
 ### 2. Run macOS Tahoe on Mac Pro 6,1 — Today
 OCLP doesn't support Tahoe on the 6,1 yet, and may never fully. This project does. macOS Tahoe runs in KVM/QEMU on the custom Linux kernel above, right now, on your Mac Pro.
 
-### 3. Eventually — macOS Virtualized Faster Than Bare Metal
-As the open-source PVG (ParavirtualizedGraphics) Linux host implementation matures, macOS in the VM gets full GPU acceleration through the Linux 6.19 amdgpu driver — which has had 9 years of improvements since Apple abandoned these GPUs. OCLP shims dead drivers. This project uses living ones.
+### 3. Eventually — macOS GPU Acceleration Through Modern Linux Drivers
+The longer-term goal is an open-source implementation of Apple's PVG (ParavirtualizedGraphics) host protocol on Linux. This would route macOS GPU work through Linux's actively-maintained amdgpu driver stack — 9 years newer than what OCLP shims. The transport layer is documented in QEMU's source. The GPU command format is Apple's black box and will require reverse-engineering. See [docs/pvg-linux.md](docs/pvg-linux.md) for an honest assessment of what's known, what isn't, and the roadmap.
 
 ## Why Now?
 
@@ -103,7 +103,7 @@ See [docs/kvm-macos.md](docs/kvm-macos.md) for the full guide. The short version
 3. Boot macOS Tahoe
 4. It works. No OCLP. No legacy kext shims.
 
-For the GPU acceleration roadmap (making macOS faster than bare metal), see [docs/pvg-linux.md](docs/pvg-linux.md).
+For the GPU acceleration roadmap, see [docs/pvg-linux.md](docs/pvg-linux.md) — including an honest breakdown of what's documented, what's Apple's black box, and what reverse-engineering is needed.
 
 ## Contributing
 

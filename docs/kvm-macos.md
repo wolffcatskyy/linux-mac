@@ -181,4 +181,4 @@ After installation, remove the install media line and tune:
 
 ## What's Next
 
-See [pvg-linux.md](pvg-linux.md) for the GPU acceleration roadmap — Phase 3 brings full Metal support and "faster than bare metal OCLP" performance.
+See [pvg-linux.md](pvg-linux.md) for the GPU acceleration roadmap — what's known, what's a black box, and realistic next steps.
