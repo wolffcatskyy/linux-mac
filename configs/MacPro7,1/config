@@ -1,0 +1,520 @@
+#
+# linux-mac: Kernel configuration for Mac Pro 7,1 (2019)
+#
+# !! TEMPLATE — NOT TESTED ON REAL HARDWARE !!
+# This config is based on Apple specs and community knowledge.
+# It needs validation on an actual Mac Pro 7,1.
+# If you have one, please test and submit fixes via PR.
+#
+# Target: Linux 6.19
+# CPU: Intel Xeon W-3200 series (Cascade Lake-SP), 8 to 28 cores
+# GPU: Radeon Pro 580X (stock) — see GPU section for other options
+# RAM: Up to 1.5TB DDR4 ECC (12 DIMM slots)
+# Storage: 2x internal NVMe (T2-managed), PCIe slots available
+# Network: 2x 10GbE Broadcom BCM57416 + BCM4364 Wi-Fi
+# Audio: Intel HDA + Cirrus Logic (via T2 on some paths)
+# Thunderbolt: 4x Thunderbolt 3 (Intel Titan Ridge JHL7540)
+# Boot: EFI stub, no initramfs
+#
+# Philosophy: Everything needed is built-in (=y) where possible.
+# Modules (=m) for things that are optional or vary between machines.
+# Disabled (not set) for hardware this machine will never have.
+#
+# T2 NOTE: The 7,1 has an Apple T2 chip that manages SSD encryption,
+# audio routing, and secure boot. Set Startup Security to "No Security"
+# before installing Linux. See README.md for details.
+#
+
+# ============================================================
+# Architecture — must be explicitly set
+# ============================================================
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_X86=y
+CONFIG_SMP=y
+CONFIG_NR_CPUS=56
+
+# ============================================================
+# General setup
+# ============================================================
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=n
+CONFIG_DEFAULT_HOSTNAME="macpro"
+CONFIG_KERNEL_ZSTD=y
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_AUDIT=y
+CONFIG_AUDITSYSCALL=y
+CONFIG_NO_HZ_FULL=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_BPF_JIT=y
+CONFIG_BPF_JIT_ALWAYS_ON=y
+CONFIG_BPF_LSM=y
+CONFIG_PREEMPT=y
+CONFIG_HZ_1000=y
+CONFIG_SCHED_AUTOGROUP=y
+CONFIG_SCHED_CORE=y
+CONFIG_TASKSTATS=y
+CONFIG_TASK_DELAY_ACCT=y
+CONFIG_TASK_XACCT=y
+CONFIG_TASK_IO_ACCOUNTING=y
+CONFIG_PSI=y
+CONFIG_FHANDLE=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_AIO=y
+CONFIG_ADVISE_SYSCALLS=y
+CONFIG_IO_URING=y
+CONFIG_KCMP=y
+CONFIG_CHECKPOINT_RESTORE=y
+CONFIG_CROSS_MEMORY_ATTACH=y
+
+# ============================================================
+# Modules — required for DKMS (broadcom-wl, etc.)
+# ============================================================
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+
+# ============================================================
+# Cgroups / Namespaces (Docker, systemd, containers)
+# ============================================================
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_SCHED=y
+CONFIG_CGROUP_CPUACCT=y
+CONFIG_CGROUP_FREEZER=y
+CONFIG_CGROUP_DEVICE=y
+CONFIG_CGROUP_BPF=y
+CONFIG_CGROUP_PIDS=y
+CONFIG_CGROUP_HUGETLB=y
+CONFIG_CGROUP_PERF=y
+CONFIG_CGROUP_NET_PRIO=y
+CONFIG_MEMCG=y
+CONFIG_BLK_CGROUP=y
+CONFIG_PAGE_COUNTER=y
+CONFIG_NAMESPACES=y
+CONFIG_USER_NS=y
+CONFIG_NET_NS=y
+CONFIG_PID_NS=y
+CONFIG_IPC_NS=y
+CONFIG_UTS_NS=y
+
+# ============================================================
+# PCI / Block layer — fundamentals
+# ============================================================
+CONFIG_PCI=y
+CONFIG_PCIEPORTBUS=y
+CONFIG_HOTPLUG_PCI_PCIE=y
+CONFIG_BLOCK=y
+CONFIG_BLK_WBT=y
+CONFIG_MQ_DEADLINE=y
+CONFIG_BFQ_GROUP_IOSCHED=y
+
+# ============================================================
+# Processor (Cascade Lake-SP / Skylake-SP)
+# ============================================================
+# Cascade Lake is a refinement of Skylake-SP. Generic CPU works fine.
+# For mainline, -march=native via MARCH_NATIVE (6.x+) is ideal.
+CONFIG_X86_MCE=y
+CONFIG_X86_MCE_INTEL=y
+CONFIG_MICROCODE=y
+CONFIG_MICROCODE_INTEL=y
+# CONFIG_MICROCODE_AMD is not set
+CONFIG_X86_MSR=y
+CONFIG_X86_CPUID=y
+# Single socket but Cascade Lake-SP supports sub-NUMA clustering
+CONFIG_NUMA=y
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+CONFIG_X86_ACPI_CPUFREQ=y
+CONFIG_X86_INTEL_PSTATE=y
+# CONFIG_X86_AMD_FREQ_SENSITIVITY is not set
+CONFIG_INTEL_IDLE=y
+# Cascade Lake has Intel Speed Select Technology
+CONFIG_INTEL_SPEED_SELECT_INTERFACE=y
+
+# ============================================================
+# Memory management (up to 1.5TB)
+# ============================================================
+CONFIG_TRANSPARENT_HUGEPAGE=y
+CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
+CONFIG_ZSWAP=y
+CONFIG_ZSMALLOC=y
+CONFIG_SLAB_FREELIST_RANDOM=y
+CONFIG_SHUFFLE_PAGE_ALLOCATOR=y
+
+# ============================================================
+# Power management
+# ============================================================
+CONFIG_PM=y
+CONFIG_ACPI=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+CONFIG_ACPI_FAN=y
+# CONFIG_ACPI_AC is not set
+# CONFIG_ACPI_BATTERY is not set
+# CONFIG_ACPI_SBS is not set
+
+# ============================================================
+# EFI / Boot (Apple EFI via T2, no initramfs)
+# ============================================================
+CONFIG_EFI=y
+CONFIG_EFI_STUB=y
+CONFIG_EFI_MIXED=y
+CONFIG_EFIVAR_FS=y
+CONFIG_FB_EFI=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_EFI_PARTITION=y
+# CONFIG_BLK_DEV_INITRD is not set
+
+# ============================================================
+# Firmware loading — support zstd-compressed firmware blobs
+# ============================================================
+CONFIG_FW_LOADER=y
+CONFIG_FW_LOADER_COMPRESS=y
+CONFIG_FW_LOADER_COMPRESS_ZSTD=y
+
+# GPU firmware blobs built into kernel (for boot without initramfs)
+# Stock 580X (Polaris 10) firmware — change to match YOUR GPU
+# See README.md for firmware names for other GPUs
+CONFIG_EXTRA_FIRMWARE="amdgpu/polaris10_ce.bin amdgpu/polaris10_ce_2.bin amdgpu/polaris10_k_smc.bin amdgpu/polaris10_mc.bin amdgpu/polaris10_me.bin amdgpu/polaris10_me_2.bin amdgpu/polaris10_mec.bin amdgpu/polaris10_mec2.bin amdgpu/polaris10_mec2_2.bin amdgpu/polaris10_mec_2.bin amdgpu/polaris10_pfp.bin amdgpu/polaris10_pfp_2.bin amdgpu/polaris10_rlc.bin amdgpu/polaris10_sdma.bin amdgpu/polaris10_sdma1.bin amdgpu/polaris10_smc.bin amdgpu/polaris10_smc_sk.bin amdgpu/polaris10_uvd.bin amdgpu/polaris10_vce.bin"
+CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
+
+# ============================================================
+# GPU — AMD Radeon Pro (Polaris / Vega / RDNA 1 / RDNA 2)
+# ============================================================
+# All 7,1 GPUs are AMD. Enable broad support since configs vary.
+# Users should trim firmware blobs to their specific GPU.
+CONFIG_DRM=y
+CONFIG_DRM_AMDGPU=y
+CONFIG_DRM_AMDGPU_SI=y
+CONFIG_DRM_AMDGPU_CIK=y
+CONFIG_DRM_AMDGPU_USERPTR=y
+CONFIG_HSA_AMD=y
+CONFIG_DRM_AMD_DC=y
+CONFIG_DRM_AMD_DC_SI=y
+
+# No Nvidia GPUs available for the 7,1 (MPX Module format, AMD only)
+# CONFIG_DRM_NOUVEAU is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_I915 is not set
+# CONFIG_DRM_VGEM is not set
+# CONFIG_DRM_VMWGFX is not set
+# CONFIG_DRM_BOCHS is not set
+# CONFIG_DRM_AST is not set
+# CONFIG_DRM_MGAG200 is not set
+
+# ============================================================
+# KVM — for macOS virtualization
+# ============================================================
+CONFIG_VIRTUALIZATION=y
+CONFIG_KVM=y
+CONFIG_KVM_INTEL=y
+# CONFIG_KVM_AMD is not set
+CONFIG_VHOST=y
+CONFIG_VHOST_NET=y
+CONFIG_VHOST_VSOCK=y
+
+# Virtio for guests
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_VIRTIO_NET=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_VIRTIO_BALLOON=y
+CONFIG_DRM_VIRTIO_GPU=m
+CONFIG_DRM_QXL=m
+
+# ============================================================
+# Storage — NVMe (internal via T2 + PCIe) + AHCI for SATA
+# ============================================================
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_CHR_DEV_SG=y
+CONFIG_ATA=y
+CONFIG_SATA_AHCI=y
+CONFIG_ATA_SFF=y
+CONFIG_ATA_BMDMA=y
+# Primary storage is NVMe
+CONFIG_BLK_DEV_NVME=y
+
+# Device mapper (for LUKS, LVM, etc.)
+CONFIG_BLK_DEV_DM=m
+CONFIG_DM_CRYPT=m
+CONFIG_DM_SNAPSHOT=m
+CONFIG_DM_MIRROR=m
+CONFIG_DM_ZERO=m
+
+# ============================================================
+# Filesystem
+# ============================================================
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_FS_POSIX_ACL=y
+CONFIG_EXT4_FS_SECURITY=y
+CONFIG_XFS_FS=y
+CONFIG_BTRFS_FS=y
+CONFIG_TMPFS=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_VFAT_FS=y
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NLS_ISO8859_1=y
+CONFIG_NLS_ASCII=y
+CONFIG_NLS_UTF8=y
+CONFIG_NLS_DEFAULT="utf8"
+CONFIG_FAT_DEFAULT_UTF8=y
+CONFIG_FUSE_FS=y
+CONFIG_OVERLAY_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_HFSPLUS_FS=m
+CONFIG_HFS_FS=m
+CONFIG_AUTOFS_FS=y
+# CONFIG_OCFS2_FS is not set
+# CONFIG_GFS2_FS is not set
+# CONFIG_NILFS2_FS is not set
+# CONFIG_F2FS_FS is not set
+# CONFIG_JFS_FS is not set
+# CONFIG_REISERFS_FS is not set
+
+# NFS client (for NAS mounts)
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=m
+CONFIG_NFS_V4=m
+CONFIG_LOCKD=m
+CONFIG_SUNRPC=m
+
+# ============================================================
+# Network — Broadcom BCM57416 10GbE + BCM4364 Wi-Fi
+# ============================================================
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_IPV6=y
+CONFIG_NETFILTER=y
+CONFIG_NF_CONNTRACK=y
+CONFIG_NETFILTER_XTABLES=y
+CONFIG_NF_NAT=y
+CONFIG_NF_TABLES=m
+CONFIG_IP_NF_IPTABLES=y
+CONFIG_IP_NF_FILTER=y
+CONFIG_IP_NF_NAT=y
+CONFIG_IP_NF_MANGLE=y
+CONFIG_IP_NF_TARGET_MASQUERADE=m
+CONFIG_IP6_NF_IPTABLES=m
+CONFIG_IP6_NF_FILTER=m
+CONFIG_IP6_NF_NAT=m
+CONFIG_BRIDGE=m
+CONFIG_BRIDGE_NETFILTER=m
+CONFIG_VLAN_8021Q=m
+CONFIG_NET_SCHED=y
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_NET_CLS_CGROUP=y
+
+# Wired — Broadcom BCM57416 10GbE (NOT tg3 — different driver family)
+CONFIG_NET_VENDOR_BROADCOM=y
+CONFIG_BNXT=y
+CONFIG_BNXT_SRIOV=y
+# tg3 not needed on 7,1 but kept as module for compatibility
+CONFIG_TIGON3=m
+
+# Wireless — BCM4364 (Wi-Fi 5)
+CONFIG_WLAN=y
+CONFIG_CFG80211=m
+CONFIG_MAC80211=m
+CONFIG_WLAN_VENDOR_BROADCOM=y
+CONFIG_BRCMFMAC=m
+CONFIG_BRCMUTIL=m
+
+# TCP — tuned for 10GbE
+CONFIG_TCP_CONG_ADVANCED=y
+CONFIG_TCP_CONG_BBR=y
+CONFIG_DEFAULT_BBR=y
+
+# Docker networking
+CONFIG_VETH=m
+CONFIG_MACVLAN=m
+CONFIG_IPVLAN=m
+CONFIG_VXLAN=m
+CONFIG_DUMMY=m
+CONFIG_TUN=y
+CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
+CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
+CONFIG_NETFILTER_XT_MATCH_IPVS=m
+CONFIG_IP_VS=m
+CONFIG_IP_VS_NFCT=y
+CONFIG_IP_VS_RR=m
+CONFIG_IP_VS_WRR=m
+CONFIG_IP_VS_SH=m
+CONFIG_IP_SET=m
+
+# Disable unused NIC vendors
+# CONFIG_NET_VENDOR_INTEL is not set
+# CONFIG_NET_VENDOR_REALTEK is not set
+# CONFIG_NET_VENDOR_QUALCOMM is not set
+# CONFIG_NET_VENDOR_MELLANOX is not set
+# CONFIG_NET_VENDOR_CHELSIO is not set
+# CONFIG_NET_VENDOR_MARVELL is not set
+# CONFIG_NET_VENDOR_AMD is not set
+# CONFIG_INFINIBAND is not set
+
+# ============================================================
+# Audio — Intel HDA + Cirrus Logic (T2 may mediate)
+# ============================================================
+# NOTE: Audio on the 7,1 may require t2linux patches.
+# The T2 chip routes some audio paths.
+CONFIG_SOUND=y
+CONFIG_SND=y
+CONFIG_SND_PCI=y
+CONFIG_SND_HDA_INTEL=y
+CONFIG_SND_HDA_CODEC_CIRRUS=y
+CONFIG_SND_HDA_CODEC_CS420X=y
+CONFIG_SND_HDA_CODEC_HDMI=y
+CONFIG_SND_HDA_GENERIC=y
+CONFIG_SND_USB=y
+CONFIG_SND_USB_AUDIO=m
+
+# ============================================================
+# USB — xHCI (USB 3.0) + Thunderbolt USB-C
+# ============================================================
+CONFIG_USB=y
+CONFIG_USB_XHCI_HCD=y
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_OHCI_HCD=y
+CONFIG_USB_OHCI_HCD_PCI=y
+CONFIG_USB_STORAGE=y
+CONFIG_USB_UAS=y
+CONFIG_USB_HID=y
+CONFIG_HID=y
+CONFIG_HID_GENERIC=y
+CONFIG_HID_APPLE=y
+CONFIG_HID_MULTITOUCH=m
+CONFIG_INPUT_EVDEV=y
+
+# ============================================================
+# Video — UVC (for USB/Thunderbolt webcams)
+# ============================================================
+CONFIG_MEDIA_SUPPORT=y
+CONFIG_MEDIA_USB_SUPPORT=y
+CONFIG_USB_VIDEO_CLASS=m
+CONFIG_VIDEO_DEV=y
+
+# ============================================================
+# Thunderbolt 3 (Intel Titan Ridge JHL7540)
+# ============================================================
+CONFIG_THUNDERBOLT=y
+
+# ============================================================
+# FireWire — not present on 7,1 (no FireWire ports)
+# ============================================================
+# CONFIG_FIREWIRE is not set
+
+# ============================================================
+# Intel chipset / platform drivers (C621 / Lewisburg PCH)
+# ============================================================
+CONFIG_DMADEVICES=y
+CONFIG_INTEL_IOATDMA=y
+CONFIG_DCA=y
+CONFIG_I2C=y
+CONFIG_I2C_I801=y
+CONFIG_I2C_SMBUS=y
+CONFIG_LPC_ICH=y
+CONFIG_INTEL_MEI=y
+CONFIG_INTEL_MEI_ME=y
+CONFIG_VIDEO=y
+CONFIG_WMI=y
+# Intel IOMMU for PCIe passthrough (useful for GPU passthrough to VMs)
+CONFIG_INTEL_IOMMU=y
+CONFIG_INTEL_IOMMU_DEFAULT_ON=y
+
+# ============================================================
+# Apple hardware
+# ============================================================
+CONFIG_HWMON=y
+CONFIG_THERMAL=y
+CONFIG_SENSORS_APPLESMC=y
+CONFIG_SENSORS_CORETEMP=y
+CONFIG_X86_PKG_TEMP_THERMAL=y
+CONFIG_APPLE_GMUX=y
+
+# Intel power management / performance monitoring
+CONFIG_INTEL_POWERCLAMP=m
+CONFIG_INTEL_RAPL=m
+CONFIG_INTEL_UNCORE=m
+CONFIG_INTEL_CSTATE=m
+CONFIG_EDAC=y
+
+# ============================================================
+# Crypto — hardware accelerated (AES-NI, AVX-512 on Cascade Lake)
+# ============================================================
+CONFIG_CRYPTO=y
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_NI_INTEL=y
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_HMAC=y
+CONFIG_CRYPTO_SHA256=y
+CONFIG_CRYPTO_SHA512=y
+CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL=y
+CONFIG_CRYPTO_USER_API=m
+CONFIG_CRYPTO_USER_API_HASH=m
+CONFIG_CRYPTO_USER_API_SKCIPHER=m
+CONFIG_KEY_DH_OPERATIONS=y
+
+# ============================================================
+# Security
+# ============================================================
+CONFIG_SECURITY=y
+CONFIG_SECURITYFS=y
+CONFIG_SECURITY_NETWORK=y
+CONFIG_LSM="landlock,lockdown,yama,integrity,apparmor,bpf"
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_SECURITY_YAMA=y
+CONFIG_SECURITY_LANDLOCK=y
+CONFIG_INTEGRITY=y
+
+# ============================================================
+# Debug / Misc
+# ============================================================
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_PRINTK=y
+CONFIG_PRINTK_TIME=y
+CONFIG_DMESG_RESTRICT=y
+CONFIG_PERF_EVENTS=y
+CONFIG_FTRACE=y
+CONFIG_DYNAMIC_DEBUG=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_TTY=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+# ============================================================
+# DISABLED — hardware this machine will never have
+# ============================================================
+# CONFIG_CPU_SUP_AMD is not set
+# CONFIG_X86_AMD_PLATFORM_DEVICE is not set
+# CONFIG_AMD_IOMMU is not set
+# CONFIG_HYPERV is not set
+# CONFIG_XEN is not set
+# CONFIG_VMWARE_VMCI is not set
+# CONFIG_ISDN is not set
+# CONFIG_HAMRADIO is not set
+# CONFIG_CAN is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_GAMEPORT is not set
+# CONFIG_PARPORT is not set
+# CONFIG_PCMCIA is not set
+# CONFIG_FB_VESA is not set
+# CONFIG_FB_VGA16 is not set

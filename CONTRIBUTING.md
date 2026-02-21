@@ -38,6 +38,10 @@ configs/YourModel/
     └── fan.conf    # if applicable
 ```
 
+**Template configs** exist for models awaiting hardware testing — check
+`configs/MacPro5,1/` and `configs/MacPro7,1/` if you have one of those machines.
+These are ready for you to validate and refine with real hardware data.
+
 ### 5. Trim the Config
 
 Follow the pattern in `configs/MacPro6,1/config`:
