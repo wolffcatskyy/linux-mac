@@ -8,9 +8,11 @@ Custom kernels, hardware documentation, GPU configuration, performance tuning, a
 
 The Mac Pro 6,1 shipped in late 2013 with workstation-grade components: Xeon E5 processors (4 to 12 cores), dual AMD FirePro GPUs, Thunderbolt 2, and up to 128GB RAM. Apple dropped macOS support years ago, but the hardware is still capable. Linux gives it a second life with modern drivers, active upstream development, and full GPU acceleration.
 
+The kernel config is based on 6.19 and includes post-6.19 mainline commits with AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
+
 This project provides:
 
-- **Custom kernel configs** built specifically for Mac Pro 6,1 hardware -- no unnecessary modules, no initramfs, everything compiled in
+- **Custom kernel configs** built specifically for Mac Pro 6,1 hardware -- 6 modules loaded vs 115 on a stock kernel, 42% faster boot
 - **Hardware documentation** covering every component, driver, and known issue across all model variants
 - **GPU support** for all three FirePro variants (D300, D500, D700) via the amdgpu driver with GCN 1.0 Southern Islands support
 - **Performance tuning** via sysctl profiles and fan curve configurations
@@ -44,11 +46,12 @@ All CPU variants are Ivy Bridge-EP (Xeon E5 v2). The kernel config targets the c
 
 A stock distribution kernel ships with thousands of modules for hardware you will never have. This project strips all of that away and builds a kernel specifically for the Mac Pro 6,1:
 
-- **Drivers compiled in**, not loaded as modules -- faster boot, simpler system
+- **6 modules vs 115 stock** -- only what the hardware actually needs
+- **42% faster boot** -- 21s vs 36s userspace on identical hardware
 - **CPU-optimized** for Ivy Bridge-EP Xeon processors
-- **No initramfs needed** -- the kernel has everything built in
+- **amdgpu as a module (=m)** loaded via initramfs -- required for Apple EFI (see Critical Gotchas)
 - **Tuned scheduling, memory management, and I/O** for the specific hardware profile
-- **12 years of upstream improvements** since the Mac Pro 6,1 shipped
+- **Post-6.19 mainline commits** with GCN 1.0 Southern Islands fixes from upstream
 
 ### Performance Expectations
 
@@ -56,12 +59,26 @@ Compared to a stock distribution kernel on the same hardware:
 
 | Metric | Improvement | Notes |
 |--------|------------|-------|
-| Boot time | 30-50% faster | No module loading, no initramfs |
+| Boot time | 42% faster | 6 modules loaded vs 115, measured on identical hardware |
 | Memory footprint | 100-300MB less | Fewer loaded modules and subsystems |
 | CPU-bound tasks | 2-10% | Compiled for Ivy Bridge-EP specifically |
 | I/O and storage | 5-15% | Tuned scheduler and block layer |
 | System responsiveness | Noticeably improved | 1000Hz tick, PREEMPT, autogroup |
-| GPU stability | Potentially significant | Built-in amdgpu, correct firmware, no driver conflicts |
+| GPU stability | Potentially significant | Correct amdgpu module loading, correct firmware, no driver conflicts |
+
+## Critical Gotchas (Apple EFI + amdgpu)
+
+These are hard-won lessons from running amdgpu on Mac Pro 6,1 hardware. Getting any one of these wrong results in a black screen or unbootable system.
+
+**Always poweroff, never reboot, when switching kernels.** Apple EFI does not fully reinitialize the GPU on warm reboot. A cold boot (full power off) clears GPU state completely. Warm reboot leaves the GPU in an inconsistent state and you get a black screen. This applies when switching between stock and custom kernels, or after any kernel update.
+
+**amdgpu MUST be `=m` (module), NOT `=y` (built-in).** On Apple EFI hardware, building amdgpu directly into the kernel (`CONFIG_DRM_AMDGPU=y`) causes initialization failures. The driver must load as a module after the EFI framebuffer hands off. This means an initramfs is required.
+
+**initramfs MUST include the amdgpu module.** In `mkinitcpio.conf`, set `MODULES=(amdgpu)` so the module is available early in boot. Without this, the kernel boots to a black screen because no GPU driver loads before userspace.
+
+**kexec is broken on Apple EFI.** Even a known-working kernel will fail to boot via `kexec`. Apple's EFI firmware does not support the kexec reboot path. Always do a full reboot through firmware.
+
+**apple-gmux is unnecessary and harmful.** The `apple-gmux` driver handles iGPU/dGPU switching on MacBooks. The Mac Pro 6,1 has no iGPU -- it only has dual discrete FirePro GPUs. Loading apple-gmux on this hardware creates 1000+ D-state kworker threads that waste CPU. Disable with `# CONFIG_APPLE_GMUX is not set`.
 
 ## macOS Tahoe in KVM
 
@@ -88,7 +105,7 @@ cd linux-mac
 ./scripts/build.sh
 # Installs vmlinuz and modules to standard paths
 # Add a bootloader entry for the new kernel
-# No initrd line needed -- everything is built in
+# initramfs required -- amdgpu must load as module on Apple EFI
 ```
 
 ### Arch Linux (PKGBUILD)
@@ -99,7 +116,7 @@ cd linux-mac/packaging/arch
 makepkg -s
 sudo pacman -U linux-macpro61-*.pkg.tar.zst
 # Add a systemd-boot entry pointing to vmlinuz-linux-macpro61
-# No initrd line needed -- everything is built in
+# Ensure MODULES=(amdgpu) in /etc/mkinitcpio.conf, then: mkinitcpio -P
 ```
 
 ### Fedora / openSUSE
@@ -160,8 +177,8 @@ See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware
 | Status | Milestone |
 |--------|-----------|
 | DONE | Custom kernel booting on Mac Pro 6,1 (all GPU variants: D300, D500, D700) |
-| DONE | Built-in drivers -- amdgpu with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
-| DONE | 42% faster boot (21s vs 36s userspace) compared to stock distribution kernels |
+| DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
+| DONE | 42% faster boot (21s vs 36s userspace), 6 modules vs 115 stock |
 | IN PROGRESS | BORE scheduler, march=ivybridge optimization, and CachyOS performance patches |
 | PLANNED | Bazzite (gaming/media) and Aurora (workstation) custom images |
 | PLANNED | macOS Tahoe KVM/QEMU ready-to-run VM configuration |
