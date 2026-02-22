@@ -40,7 +40,7 @@ The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). I
 | Audio (HDMI) | ✅ Works | Via amdgpu HDMI audio |
 | Thunderbolt | ⚠️ Works with issues | Hotplug log spam |
 | USB 3.0 | ✅ Works | Via xHCI |
-| Sleep/Wake | ❌ Unreliable | Historically broken on 6,1 |
+| Sleep/Wake | ❌ Disabled | Explicitly disabled in kernel config |
 | Fan Control | ✅ Works | Via applesmc + macfanctld |
 | Temperature Sensors | ✅ Works | Via applesmc + hwmon |
 
@@ -59,7 +59,7 @@ The 6,1 generates excessive kernel log messages related to Thunderbolt hotplug d
 Running heavy GPU compute (e.g., LLM inference) on the FirePro D300/D500/D700 can cause ring timeout errors and system crashes. The custom kernel with built-in amdgpu driver and correct firmware may improve stability.
 
 ### Sleep/Wake
-Historically unreliable on the Mac Pro 6,1 under Linux. Not a priority for this kernel build. If you need the machine to sleep, this may not be solved.
+Explicitly disabled in the kernel config (`CONFIG_SUSPEND`, `CONFIG_ACPI_SLEEP`, `CONFIG_HIBERNATION` all unset). Sleep/wake has always been unreliable on the Mac Pro 6,1 under Linux, and this is a workstation/server kernel — if it's on, it's on.
 
 ## Model Variants
 

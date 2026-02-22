@@ -151,7 +151,7 @@ linux-mac/
 | USB 3.0 | Working | Via xHCI |
 | Fan control | Working | Via applesmc + macfanctld |
 | Temperature sensors | Working | Via applesmc + hwmon |
-| Sleep/Wake | Unreliable | Historically broken on the 6,1 |
+| Sleep/Wake | Disabled | Explicitly disabled — workstation kernel, if it's on it's on |
 
 See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware details, PCI device IDs, and known issue workarounds.
 
