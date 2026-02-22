@@ -13,16 +13,23 @@ Both share the same custom kernel and GPU stack. The difference is the userland.
 
 ## What's Included
 
+These are fully configured, opinionated systems. Everything is pre-configured and working out of the box.
+
 Every ISO ships with:
 
+- **Desktop environment** — GNOME (AnduinOS) or COSMIC (AerynOS), fully configured
 - **Custom kernel** (`linux-macpro61`) — amdgpu=m, SI support, KVM, no gmux, Ivy Bridge optimized
-- **Mesa 26.1-dev** with RADV Vulkan — latest GCN 1.0 fixes
-- **macOS Tahoe KVM** — desktop icon, one-click setup, auto-downloads recovery from Apple
+- **Mesa 26.1-dev** with RADV Vulkan — latest GCN 1.0 fixes, full GPU acceleration
+- **macOS Tahoe KVM** — desktop icon, one-click setup, auto-downloads recovery directly from Apple
 - **OpenCore.qcow2** — pre-configured for macOS Tahoe on Ivy Bridge-EP KVM
 - **Fan control** — macfanctld with Mac Pro 6,1 curve profiles
 - **Sysctl tuning** — kvm.ignore_msrs, network, memory optimizations
 - **Boot entries** — pre-configured for Mac Pro 6,1 EFI
 - **No configuration required** — boot USB, install, done
+
+What's NOT shipped (for legal reasons):
+
+- **macOS recovery image** — downloads automatically from Apple's servers (`osrecovery.apple.com`) when you click the desktop icon. ~700MB, ~5 minutes. We automate the download, we don't redistribute it.
 
 ## Build
 
