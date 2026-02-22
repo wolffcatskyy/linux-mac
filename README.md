@@ -180,10 +180,36 @@ See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware
 | DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
 | DONE | 42% faster boot (21s vs 36s userspace), 6 modules vs 115 stock |
 | IN PROGRESS | BORE scheduler, march=ivybridge optimization, and CachyOS performance patches |
-| PLANNED | Bazzite (gaming/media) and Aurora (workstation) custom images |
-| PLANNED | macOS Tahoe KVM/QEMU ready-to-run VM configuration |
+| COMING SOON | **AnduinOS** and **AerynOS** pre-configured ISOs -- boot, install, done |
+| COMING SOON | macOS Tahoe KVM one-click setup (auto-downloads recovery, configures QEMU, desktop icon) |
+| COMING SOON | Mesa 26.1-dev (git) with RADV Vulkan -- latest GCN 1.0 fixes |
 | PLANNED | Pre-built kernel packages (Arch AUR, Fedora COPR, openSUSE OBS) |
 | PLANNED | Community testing for D300 and D500 GPU variants |
+
+## Pre-configured ISOs (Coming Soon)
+
+Why spend hours configuring when you can boot a USB stick and have everything working?
+
+We are building ready-to-install ISOs specifically for the Mac Pro 6,1:
+
+| ISO | Base | Desktop | Target |
+|-----|------|---------|--------|
+| **AnduinOS** | Ubuntu LTS | GNOME (Windows-like UX) | Users who want stability and familiarity |
+| **AerynOS** | Serpent OS | COSMIC/GNOME | Users who want a modern, performance-focused system |
+
+Both ISOs include:
+- **Custom kernel** with hardware-specific optimizations (amdgpu=m, embedded firmware, no bloat)
+- **Mesa 26.1-dev** with RADV Vulkan for full GPU acceleration on GCN 1.0
+- **macOS Tahoe KVM** one-click desktop launcher (downloads recovery from Apple, pre-configures QEMU)
+- **Pre-configured boot entries** for Mac Pro 6,1 EFI
+- **Fan control** via applesmc + macfanctld
+- **No configuration required** -- boot the USB, click install, done
+
+### Why Two ISOs?
+
+Different users want different things. AnduinOS targets users migrating from Windows or macOS who want a familiar desktop. AerynOS targets power users and developers who want a cutting-edge system with the latest packages.
+
+Both ship the same custom kernel and GPU stack. The difference is the userland.
 
 ## Contributing
 
