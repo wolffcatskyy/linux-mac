@@ -35,3 +35,13 @@ pkg/
 # Kernel source tarballs (downloaded by makepkg)
 packaging/arch/linux-*.tar.xz
 packaging/arch/linux-*.tar.sign
+
+# VM disk images (too large for git)
+*.qcow2
+*.vmdk
+*.vdi
+*.raw
+
+# macOS Tahoe KVM runtime files
+macos-tahoe-kvm/vm/
+macos-tahoe-kvm/opencore-efi/OpenCore.qcow2
