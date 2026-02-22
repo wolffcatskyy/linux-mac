@@ -19,10 +19,10 @@ sudo pacman -S mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon
 
 # Verify drivers
 glxinfo | grep "OpenGL renderer"
-# Should show: AMD Radeon R9 290X (hawaii, ...)
+# Should show: AMD FirePro D700 (tahiti, ...)
 
 vulkaninfo --summary
-# Should show: RADV HAWAII
+# Should show: RADV TAHITI
 ```
 
 ## Environment Variables
@@ -78,9 +78,9 @@ The kernel config builds firmware into the kernel image. If you need to verify f
 
 ```bash
 dmesg | grep -i firmware
-dmesg | grep -i hawaii
+dmesg | grep -i tahiti
 
-# Should show successful firmware loading for hawaii_* blobs
+# Should show successful firmware loading for tahiti_* blobs
 # No "firmware failed" messages
 ```
 
