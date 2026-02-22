@@ -20,7 +20,7 @@
 The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). It's GCN 1.0 (Southern Islands). Despite Apple marketing referencing "FirePro D700", `lspci` identifies them as `1002:6798` and the amdgpu driver initializes them as TAHITI.
 
 - **Kernel driver:** `amdgpu` with SI (Southern Islands) support — requires `CONFIG_DRM_AMDGPU_SI=y`
-- **Firmware:** `amdgpu/tahiti_ce.bin`, `tahiti_mc.bin`, `tahiti_me.bin`, `tahiti_pfp.bin`, `tahiti_rlc.bin`, `tahiti_smc.bin`, `tahiti_uvd.bin`, `vce_1_0_0.bin`
+- **Firmware:** Tahiti: `tahiti_{ce,mc,me,pfp,rlc,smc}.bin` — Pitcairn: `pitcairn_{ce,mc,me,pfp,rlc,smc}.bin`
 - **Mesa driver:** `radeonsi` (OpenGL), `RADV` (Vulkan)
 - **Kernel 6.19:** Mature amdgpu SI support
 
@@ -70,7 +70,7 @@ Historically unreliable on the Mac Pro 6,1 under Linux. Not a priority for this 
 | High | E5-1680 v2 (8C/16T, 3.0GHz) | 2x D700 (6GB) | 32/64GB |
 | BTO Max | E5-2697 v2 (12C/24T, 2.7GHz) | 2x D700 (6GB) | 64GB |
 
-The kernel config targets the D700 GPU variant. D300/D500 users may need to adjust firmware blob paths (Pitcairn for D300, Tahiti for D500 vs Hawaii for D700).
+The kernel config includes firmware for all GPU variants: Tahiti (D500/D700) and Pitcairn (D300). No changes needed regardless of which model you have.
 
 ## PCI Device IDs
 
