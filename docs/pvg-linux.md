@@ -56,7 +56,7 @@ The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 al
 │                    └─────┬─────┘                      │
 │                          │                            │
 │                    ┌─────┴─────┐                      │
-│                    │  D700 GPU │ hardware              │
+│                    │ FirePro   │ hardware              │
 │                    └───────────┘                      │
 └─────────────────────────────────────────────────────┘
 ```

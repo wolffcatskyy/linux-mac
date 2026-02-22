@@ -56,7 +56,7 @@ The 6,1 generates excessive kernel log messages related to Thunderbolt hotplug d
 - Patches in `patches/` directory (when available)
 
 ### GPU Ring Timeouts Under Sustained Load
-Running heavy GPU compute (e.g., LLM inference) on the D700s can cause ring timeout errors and system crashes. The custom kernel with built-in amdgpu driver and correct firmware may improve stability.
+Running heavy GPU compute (e.g., LLM inference) on the FirePro D300/D500/D700 can cause ring timeout errors and system crashes. The custom kernel with built-in amdgpu driver and correct firmware may improve stability.
 
 ### Sleep/Wake
 Historically unreliable on the Mac Pro 6,1 under Linux. Not a priority for this kernel build. If you need the machine to sleep, this may not be solved.

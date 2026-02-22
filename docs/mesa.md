@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Mac Pro 6,1's FirePro D700 GPUs use two Mesa drivers:
+The Mac Pro 6,1's FirePro D300/D500/D700 GPUs use two Mesa drivers:
 
 - **radeonsi** — OpenGL driver for GCN GPUs
 - **RADV** — Vulkan driver for GCN GPUs
@@ -19,10 +19,12 @@ sudo pacman -S mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon
 
 # Verify drivers
 glxinfo | grep "OpenGL renderer"
-# Should show: AMD FirePro D700 (tahiti, ...)
+# D500/D700 shows: AMD FirePro (tahiti, ...)
+# D300 shows: AMD FirePro (pitcairn, ...)
 
 vulkaninfo --summary
-# Should show: RADV TAHITI
+# D500/D700 shows: RADV TAHITI
+# D300 shows: RADV PITCAIRN
 ```
 
 ## Environment Variables
@@ -42,17 +44,17 @@ export RADV_DEBUG=info
 
 ## Multi-GPU Configuration
 
-The Mac Pro 6,1 has **two** D700 GPUs. By default, Linux will use the first one for display. For compute workloads across both:
+The Mac Pro 6,1 has **two** FirePro GPUs. By default, Linux will use the first one for display. For compute workloads across both:
 
 ```bash
 # List GPU devices
 ls /dev/dri/card* /dev/dri/renderD*
 
 # Typically:
-# /dev/dri/card0 — First D700 (display)
-# /dev/dri/card1 — Second D700
-# /dev/dri/renderD128 — First D700 (render node)
-# /dev/dri/renderD129 — Second D700 (render node)
+# /dev/dri/card0 — First GPU (display)
+# /dev/dri/card1 — Second GPU
+# /dev/dri/renderD128 — First GPU (render node)
+# /dev/dri/renderD129 — Second GPU (render node)
 
 # Assign specific GPU to an application
 DRI_PRIME=1 glxgears  # Run on second GPU
@@ -78,9 +80,9 @@ The kernel config builds firmware into the kernel image. If you need to verify f
 
 ```bash
 dmesg | grep -i firmware
-dmesg | grep -i tahiti
+dmesg | grep -iE 'tahiti|pitcairn'
 
-# Should show successful firmware loading for tahiti_* blobs
+# Should show successful firmware loading for tahiti_* or pitcairn_* blobs
 # No "firmware failed" messages
 ```
 
