@@ -1,0 +1,29 @@
+# Common packages for Mac Pro 6,1 ISOs
+# These are needed regardless of base distro
+
+# KVM/QEMU stack
+qemu-system-x86
+qemu-utils
+libvirt-daemon-system
+virt-manager
+ovmf
+spice-client-gtk
+
+# Networking for VMs
+dnsmasq-base
+bridge-utils
+
+# GPU drivers (Mesa 26.1-dev or latest available)
+# mesa-vulkan-drivers  # provides RADV
+# mesa-utils
+
+# Mac Pro hardware support
+lm-sensors
+fancontrol
+
+# General utilities
+wget
+curl
+python3
+openssl
+dmidecode

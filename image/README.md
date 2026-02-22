@@ -1,69 +1,111 @@
-# Prebuilt Distro Image
+# Pre-configured ISOs for Mac Pro 6,1
 
-## Decision
+## Overview
 
-Ship a bootable disk image that includes the custom kernel, all distro glue, and KVM tooling pre-configured. Users should be able to write the image to a drive, boot, and have a working Mac Pro 6,1 Linux environment with macOS KVM ready to go.
+Two ready-to-install ISOs specifically for the Mac Pro 6,1, each including the custom kernel, Mesa 26.1-dev with RADV Vulkan, and macOS Tahoe KVM one-click setup.
 
-## Why
+| ISO | Base | Desktop | Installer | Target |
+|-----|------|---------|-----------|--------|
+| **AnduinOS** | Ubuntu LTS | GNOME (Windows-like UX) | Calamares | Stability and familiarity |
+| **AerynOS** | Serpent OS | COSMIC/GNOME | Lichen (TUI) | Modern, performance-focused |
 
-The custom kernel is only half the story. Getting macOS KVM working also requires:
+Both share the same custom kernel and GPU stack. The difference is the userland.
 
-- QEMU, libvirt, virt-manager installed and configured
-- User in `kvm` and `libvirt` groups
-- libvirtd enabled
-- dnsmasq and bridge-utils for VM networking
-- OVMF firmware for UEFI boot
-- SPICE client for display
-- sysctl tuning (`kvm.ignore_msrs`, network, memory)
-- Fan control (macfanctld)
+## What's Included
 
-Documenting all of this per-distro is fragile. A prebuilt image ensures it works out of the box.
+Every ISO ships with:
 
-## Planned Structure
+- **Custom kernel** (`linux-macpro61`) — amdgpu=m, SI support, KVM, no gmux, Ivy Bridge optimized
+- **Mesa 26.1-dev** with RADV Vulkan — latest GCN 1.0 fixes
+- **macOS Tahoe KVM** — desktop icon, one-click setup, auto-downloads recovery from Apple
+- **OpenCore.qcow2** — pre-configured for macOS Tahoe on Ivy Bridge-EP KVM
+- **Fan control** — macfanctld with Mac Pro 6,1 curve profiles
+- **Sysctl tuning** — kvm.ignore_msrs, network, memory optimizations
+- **Boot entries** — pre-configured for Mac Pro 6,1 EFI
+- **No configuration required** — boot USB, install, done
+
+## Build
+
+### AnduinOS (Ubuntu-based)
+
+```bash
+# Requires: AMD64 Linux host, debootstrap, live-build, squashfs-tools
+cd image/anduinos
+sudo ./build.sh
+# Output: dist/linux-mac-anduinos-*.iso
+```
+
+**How it works:**
+1. Clones AnduinOS build system (Ubuntu LTS + GNOME + Calamares)
+2. Injects custom kernel package (.deb built from our config)
+3. Adds Mesa 26.1-dev packages
+4. Copies macOS Tahoe KVM toolkit to /opt/macos-tahoe-kvm/
+5. Installs desktop launcher (first-boot systemd oneshot)
+6. Adds sysctl tuning and fan control
+7. Builds bootable ISO with Calamares installer
+
+### AerynOS (Serpent OS-based)
+
+```bash
+# Requires: moss, boulder (AerynOS build tools)
+cd image/aerynos
+sudo ./build.sh
+# Output: dist/linux-mac-aerynos-*.iso
+```
+
+**How it works:**
+1. Uses AerynOS img-tests ISO construction scripts
+2. Builds custom kernel and mesa as stone packages via boulder
+3. Includes macOS Tahoe KVM toolkit
+4. Builds bootable ISO with lichen installer
+
+**Note:** AerynOS tooling is still early-stage (alpha). The AnduinOS ISO is more mature and recommended for initial release.
+
+## Directory Structure
 
 ```
 image/
-  README.md          # This file
-  build.sh           # Build script (produces bootable image)
-  packages.txt       # Package list for the image
-  overlay/           # Files overlaid onto the image filesystem
-    etc/
-      sysctl.d/
-        99-macpro.conf
-      systemd/
-        system/
-          ...        # Service enablement
-    usr/
-      local/
-        bin/
-          launch-macos.sh
+├── README.md              # This file
+├── common/                # Shared between both ISOs
+│   ├── overlay/           # Filesystem overlay (sysctl, scripts, etc.)
+│   │   ├── etc/
+│   │   │   └── sysctl.d/
+│   │   │       └── 99-macpro.conf
+│   │   ├── opt/
+│   │   │   └── macos-tahoe-kvm/  → symlink to ../../macos-tahoe-kvm/
+│   │   └── usr/
+│   │       └── share/
+│   │           └── applications/
+│   │               └── macos-tahoe-kvm.desktop
+│   └── packages-common.txt
+├── anduinos/
+│   ├── build.sh           # AnduinOS ISO build script
+│   ├── packages.txt       # Ubuntu packages to add
+│   └── hooks/             # Calamares post-install hooks
+└── aerynos/
+    ├── build.sh           # AerynOS ISO build script
+    ├── stone.yaml         # Custom kernel recipe for boulder
+    └── packages.txt       # AerynOS packages to add
 ```
 
-## Build Script
+## Build Dependencies
 
-`build.sh` will:
+### AnduinOS build host
+```
+debootstrap live-build squashfs-tools xorriso mtools grub-efi-amd64-bin
+```
 
-1. Bootstrap a minimal Arch Linux rootfs
-2. Install packages from `packages.txt`
-3. Install the custom `linux-macpro61` kernel
-4. Apply overlay files (sysctl, services, scripts)
-5. Configure user groups, systemd services
-6. Produce a raw disk image (convertible to qcow2, ISO, etc.)
+### AerynOS build host
+```
+moss boulder (from AerynOS os-tools)
+```
 
-## Scope
+## Release Workflow
 
-The image handles **distro glue only** — everything needed beyond the kernel to make the system usable. The kernel itself is built separately via `packaging/arch/PKGBUILD`.
-
-What's in the image:
-- Base system (Arch Linux minimal)
-- Custom kernel package
-- KVM/QEMU stack
-- Mesa GPU drivers
-- Network and display tooling
-- Fan control
-- Sysctl tuning
-
-What's NOT in the image:
-- Desktop environment (user's choice)
-- macOS installer media (legal reasons)
-- OpenCore image (user must provide)
+1. Build custom kernel: `cd packaging/arch && makepkg -s`
+2. Build AnduinOS ISO: `cd image/anduinos && sudo ./build.sh`
+3. Test in QEMU: `qemu-system-x86_64 -cdrom dist/*.iso -m 4G`
+4. Write to USB: `dd if=dist/*.iso of=/dev/sdX bs=4M status=progress`
+5. Boot Mac Pro 6,1 from USB
+6. Install via Calamares
+7. Reboot (full poweroff, NOT warm reboot!)
