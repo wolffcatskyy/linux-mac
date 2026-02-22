@@ -180,7 +180,7 @@ See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware
 | DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
 | DONE | 42% faster boot (21s vs 36s userspace), 6 modules vs 115 stock |
 | IN PROGRESS | BORE scheduler, march=ivybridge optimization, and CachyOS performance patches |
-| COMING SOON | **AnduinOS** and **AerynOS** pre-configured ISOs -- boot, install, done |
+| COMING SOON | **[AnduinOS](https://www.anduinos.com/)** and **[AerynOS](https://aerynos.com/)** pre-configured ISOs -- boot, install, done |
 | COMING SOON | macOS Tahoe KVM one-click setup (auto-downloads recovery, configures QEMU, desktop icon) |
 | COMING SOON | Mesa 26.1-dev (git) with RADV Vulkan -- latest GCN 1.0 fixes |
 | PLANNED | Pre-built kernel packages (Arch AUR, Fedora COPR, openSUSE OBS) |
@@ -194,8 +194,8 @@ We are building ready-to-install ISOs specifically for the Mac Pro 6,1:
 
 | ISO | Base | Desktop | Target |
 |-----|------|---------|--------|
-| **AnduinOS** | Ubuntu LTS | GNOME (Windows-like UX) | Users who want stability and familiarity |
-| **AerynOS** | Serpent OS | COSMIC/GNOME | Users who want a modern, performance-focused system |
+| **[AnduinOS](https://www.anduinos.com/)** | Ubuntu LTS | GNOME (Windows-like UX) | Users who want stability and familiarity |
+| **[AerynOS](https://aerynos.com/)** | Serpent OS | COSMIC/GNOME | Users who want a modern, performance-focused system |
 
 Both ISOs include:
 - **Custom kernel** with hardware-specific optimizations (amdgpu=m, embedded firmware, no bloat)
@@ -207,7 +207,7 @@ Both ISOs include:
 
 ### Why Two ISOs?
 
-Different users want different things. AnduinOS targets users migrating from Windows or macOS who want a familiar desktop. AerynOS targets power users and developers who want a cutting-edge system with the latest packages.
+Different users want different things. [AnduinOS](https://www.anduinos.com/) targets users migrating from Windows or macOS who want a familiar desktop. [AerynOS](https://aerynos.com/) targets power users and developers who want a cutting-edge system with the latest packages.
 
 Both ship the same custom kernel and GPU stack. The difference is the userland.
 
