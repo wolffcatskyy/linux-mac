@@ -3,8 +3,8 @@
 
 pkgbase=linux-macpro61
 pkgver=6.19.0
-pkgrel=1
-pkgdesc='Custom Linux kernel for Mac Pro 6,1 — built-in drivers, no initramfs, tuned for Ivy Bridge-EP + dual D700'
+pkgrel=2
+pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS-patched, BORE scheduler, BBR3, built-in drivers, no initramfs'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)
@@ -75,7 +75,7 @@ _decompress_firmware() {
         if [[ -f "$fw_dir/$blob" ]]; then
             cp "$fw_dir/$blob" "$staging/$blob"
         elif [[ -f "$fw_dir/${blob}.zst" ]]; then
-            zstd -d "$(realpath "$fw_dir/${blob}.zst")" -o "$staging/$blob"
+            zstd -df "$(realpath "$fw_dir/${blob}.zst")" -o "$staging/$blob"
         else
             echo "WARNING: Firmware blob not found: $blob"
         fi
@@ -99,7 +99,7 @@ prepare() {
     # Point EXTRA_FIRMWARE_DIR to our staged decompressed firmware
     sed -i "s|^CONFIG_EXTRA_FIRMWARE_DIR=.*|CONFIG_EXTRA_FIRMWARE_DIR=\"$srcdir/firmware\"|" .config
 
-    # Apply patches if any exist
+    # Apply patches if any exist (from source array)
     local src
     for src in "${source[@]}"; do
         src="${src%%::*}"
@@ -110,16 +110,63 @@ prepare() {
         patch -Np1 < "$srcdir/$src"
     done
 
+    # Apply CachyOS patches (BORE scheduler, BBR3, performance, fixes)
+    # Note: --force needed because BORE (0001) and cachy (0003) both touch
+    # kernel/sched/fair.c tunables. The rejected hunk is redundant (BORE
+    # already sets SCHED_TUNABLESCALING_NONE which subsumes the cachy tunable change).
+    echo "Applying CachyOS patches..."
+    for patch in "$startdir"/../../patches/cachyos/*.patch; do
+        if [[ -f "$patch" ]]; then
+            echo "  Applying $(basename "$patch")..."
+            patch -Np1 --force < "$patch" || true
+        fi
+    done
+    # Clean up any .rej files from force-applied patches
+    find . -name '*.rej' -delete
+
+    make olddefconfig
+
+    # CachyOS patches may change Kconfig dependencies that switch critical
+    # built-in drivers to modules. Force them back to built-in (=y) for
+    # no-initramfs boot on Mac Pro 6,1.
+    echo "Enforcing Mac Pro 6,1 critical built-in drivers..."
+    local _critical_builtin=(
+        CONFIG_DRM_AMDGPU
+        CONFIG_DRM_RADEON
+        CONFIG_TIGON3
+        CONFIG_THUNDERBOLT
+        CONFIG_SATA_AHCI
+        CONFIG_SENSORS_APPLESMC
+        CONFIG_EFI_STUB
+        CONFIG_MODULES
+        CONFIG_SND_HDA_INTEL
+        CONFIG_USB_XHCI_HCD
+        CONFIG_USB_XHCI_PCI
+    )
+    for opt in "${_critical_builtin[@]}"; do
+        if grep -q "^${opt}=m" .config; then
+            echo "  Fixing ${opt}: m -> y"
+            sed -i "s/^${opt}=m/${opt}=y/" .config
+        elif grep -q "^# ${opt} is not set" .config; then
+            echo "  Fixing ${opt}: not set -> y"
+            sed -i "s/^# ${opt} is not set/${opt}=y/" .config
+        elif ! grep -q "^${opt}=y" .config; then
+            echo "  Adding ${opt}=y"
+            echo "${opt}=y" >> .config
+        fi
+    done
+
+    # Re-resolve dependencies after forcing options
     make olddefconfig
 
     # Verify critical options are set
     echo "Verifying config..."
-    grep -q "CONFIG_DRM_AMDGPU=y" .config || echo "WARNING: AMDGPU not built-in!"
+    grep -q "CONFIG_DRM_AMDGPU=y" .config || echo "FATAL: AMDGPU not built-in!"
     grep -q "CONFIG_SENSORS_APPLESMC=y" .config || echo "WARNING: Apple SMC not built-in!"
     grep -q "CONFIG_EFI_STUB=y" .config || echo "WARNING: EFI stub not enabled!"
     grep -q "CONFIG_MODULES=y" .config || echo "WARNING: Modules not enabled!"
-    grep -q "CONFIG_TIGON3=y" .config || echo "WARNING: Broadcom NIC not built-in!"
-    grep -q "CONFIG_SATA_AHCI=y" .config || echo "WARNING: AHCI not built-in!"
+    grep -q "CONFIG_TIGON3=y" .config || echo "FATAL: Broadcom NIC not built-in!"
+    grep -q "CONFIG_SATA_AHCI=y" .config || echo "FATAL: AHCI not built-in!"
     grep -q "CONFIG_THUNDERBOLT=y" .config || echo "WARNING: Thunderbolt not built-in!"
 
     make -s kernelrelease > version
@@ -159,13 +206,9 @@ _package() {
     echo "Installing sysctl config..."
     install -Dm644 "$srcdir/99-macpro.conf" "$pkgdir/etc/sysctl.d/99-macpro.conf"
 
-    echo "Installing boot entry..."
-    install -Dm644 /dev/stdin "$pkgdir/boot/loader/entries/linux-macpro61.conf" <<EOF
-title   Arch Linux (Mac Pro 6,1 Kernel)
-linux   /vmlinuz-linux-macpro61
-options root=PARTUUID=XXXX-XXXX-XXXX rw
-EOF
-    echo "NOTE: Update PARTUUID in /boot/loader/entries/linux-macpro61.conf"
+    # Skip boot entry installation — user manages their own boot entry
+    # See README for systemd-boot setup instructions
+    echo "NOTE: Ensure /boot/loader/entries/linux-macpro61.conf exists with correct PARTUUID"
 }
 
 _package-headers() {
