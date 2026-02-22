@@ -27,9 +27,7 @@ Every ISO ships with:
 - **Boot entries** — pre-configured for Mac Pro 6,1 EFI
 - **No configuration required** — boot USB, install, done
 
-What's NOT shipped (for legal reasons):
-
-- **macOS recovery image** — downloads automatically from Apple's servers (`osrecovery.apple.com`) when you click the desktop icon. ~700MB, ~5 minutes. We automate the download, we don't redistribute it.
+The macOS recovery image (~700MB) downloads directly from Apple's servers when you click the desktop icon. The one-click setup handles everything automatically.
 
 ## Build
 
