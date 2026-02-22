@@ -72,6 +72,8 @@ Explicitly disabled in the kernel config (`CONFIG_SUSPEND`, `CONFIG_ACPI_SLEEP`,
 
 The kernel config includes firmware for all GPU variants: Tahiti (D500/D700) and Pitcairn (D300). No changes needed regardless of which model you have.
 
+All Mac Pro 6,1 configurations share the same Thunderbolt controller, ethernet, Wi-Fi, and audio. The only hardware differences are CPU core count (4-12 cores, all Ivy Bridge-EP), RAM amount (no kernel impact), and GPU variant (firmware handled above). Aftermarket NVMe via PCIe adapter is extremely common — the kernel config includes both NVMe (`CONFIG_BLK_DEV_NVME=y`) and AHCI (`CONFIG_SATA_AHCI=y`) built-in.
+
 ## PCI Device IDs
 
 ```
