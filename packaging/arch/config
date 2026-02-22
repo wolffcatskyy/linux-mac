@@ -3,7 +3,7 @@
 #
 # Target: Linux 6.19
 # CPU: Intel Xeon E5-1650 v2 Ivy Bridge-EP (6C/12T @ 3.5GHz)
-# GPU: Dual AMD FirePro D700 (Tahiti XT, GCN 1.0 — uses CIK path in amdgpu)
+# GPU: Dual AMD FirePro D700 (Tahiti XT, GCN 1.0 — uses SI path in amdgpu)
 # RAM: 64GB ECC DDR3
 # Storage: Samsung Apple PCIe SSD (AHCI)
 # Network: Dual Broadcom BCM57762 GbE + BCM57761 (Thunderbolt)
@@ -180,12 +180,12 @@ CONFIG_EXTRA_FIRMWARE="amdgpu/hawaii_ce.bin amdgpu/hawaii_mc.bin amdgpu/hawaii_m
 CONFIG_EXTRA_FIRMWARE_DIR="/lib/firmware"
 
 # ============================================================
-# GPU — AMD FirePro D700 (Tahiti XT, GCN 1.0 — CIK path in amdgpu)
+# GPU — AMD FirePro D700 (Tahiti XT, GCN 1.0 — SI path in amdgpu)
 # ============================================================
 CONFIG_DRM=y
 CONFIG_DRM_AMDGPU=y
 CONFIG_DRM_AMDGPU_SI=y
-CONFIG_DRM_AMDGPU_CIK=y
+# CONFIG_DRM_AMDGPU_CIK is not set
 CONFIG_DRM_AMDGPU_USERPTR=y
 CONFIG_HSA_AMD=y
 CONFIG_DRM_AMD_DC=y
@@ -218,7 +218,7 @@ CONFIG_VIRTIO_PCI=y
 CONFIG_VIRTIO_NET=y
 CONFIG_VIRTIO_BLK=y
 CONFIG_VIRTIO_BALLOON=y
-CONFIG_DRM_VIRTIO_GPU=m
+CONFIG_DRM_VIRTIO_GPU=y
 CONFIG_DRM_QXL=m
 
 # ============================================================

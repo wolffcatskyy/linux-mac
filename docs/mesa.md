@@ -11,7 +11,7 @@ Both are actively maintained in Mesa and receive regular improvements.
 
 ## Recommended Mesa Version
 
-Use the latest stable Mesa release available for your distribution. Mesa 24.x+ is recommended for best GCN 1.1 support.
+Use the latest stable Mesa release available for your distribution. Mesa 24.x+ is recommended for best GCN 1.0 support.
 
 ```bash
 # Arch Linux (usually up to date)

@@ -12,23 +12,62 @@ This project takes a different approach: run macOS Tahoe as a KVM guest on a cus
 
 ## Prerequisites
 
-- Mac Pro 6,1 running Arch Linux with the `linux-macpro61` kernel
+- Any Linux distribution with KVM support (kernel 5.10+)
+- Hardware virtualization enabled in firmware (Intel VT-x or AMD-V)
 - At least 32GB RAM (16GB for host, 16GB for guest)
 - 100GB+ free disk space for the macOS disk image
 - macOS Tahoe installer (via `macrecovery.py` from OpenCore)
 - QEMU 10.0+ (for apple-gfx-pci support in future phases)
 - OpenCore bootloader image
 
+Using the custom `linux-macpro61` kernel from this project is optional but recommended — it includes built-in firmware, KVM tuning, and sysctl defaults that improve macOS guest performance.
+
 ## Required Packages
 
-```bash
-# Arch Linux
-sudo pacman -S qemu-full libvirt virt-manager edk2-ovmf \
-    spice-gtk dmidecode
+### Arch Linux
 
+```bash
+sudo pacman -S qemu-full libvirt virt-manager edk2-ovmf \
+    spice-gtk dmidecode dnsmasq bridge-utils
+```
+
+### Debian / Ubuntu
+
+```bash
+sudo apt install qemu-system-x86 libvirt-daemon-system \
+    virt-manager ovmf spice-client-gtk dmidecode \
+    dnsmasq-base bridge-utils
+```
+
+### Fedora
+
+```bash
+sudo dnf install @virtualization edk2-ovmf spice-gtk3 \
+    dmidecode dnsmasq bridge-utils
+```
+
+## System Setup
+
+After installing packages, enable the libvirt daemon and add your user to the required groups:
+
+```bash
 # Enable libvirtd
 sudo systemctl enable --now libvirtd
-sudo usermod -aG libvirt $USER
+
+# Add user to kvm and libvirt groups
+sudo usermod -aG kvm,libvirt $USER
+
+# Log out and back in for group changes to take effect
+```
+
+Verify KVM is available:
+
+```bash
+# Should return 0 (success)
+ls /dev/kvm
+
+# Check QEMU can use KVM
+qemu-system-x86_64 -accel help | grep kvm
 ```
 
 ## Phase 1: macOS Tahoe on QXL (Available Now)
@@ -178,6 +217,9 @@ After installation, remove the install media line and tune:
 | Kernel panic at install | Reduce CPU count, disable HT |
 | No network | Try `e1000-82545em` instead of `vmxnet3` |
 | Poor performance | Verify KVM: `dmesg \| grep kvm` |
+| `/dev/kvm` missing | Enable VT-x/AMD-V in BIOS/UEFI firmware |
+| Permission denied on `/dev/kvm` | Add user to `kvm` group: `sudo usermod -aG kvm $USER` |
+| libvirtd not starting | Check `systemctl status libvirtd` and journal logs |
 
 ## What's Next
 

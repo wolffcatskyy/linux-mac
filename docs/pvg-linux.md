@@ -21,7 +21,7 @@ macOS Metal app → built-in PVG driver → apple-gfx-pci → Linux PVG host
   → Mesa radeonsi/RADV → amdgpu (kernel 6.19) → GPU
 ```
 
-The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 alone brings 25-40% improvements for GCN 1.1 GPUs.
+The Linux driver stack is **9 years newer** than what OCLP shims. Kernel 6.19 alone brings 25-40% improvements for GCN 1.0 GPUs.
 
 **Caveat:** The PVG command format between the guest driver and host framework is proprietary and undocumented. Building this pipeline requires reverse-engineering that protocol. The transport layer (how data moves) is documented in QEMU. The translation layer (what the GPU commands mean) is not. See "What's Known vs What's a Black Box" below.
 
