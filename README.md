@@ -1,211 +1,98 @@
 # linux-mac
 
-Linux on Apple Mac Pro 6,1 (Late 2013) -- the definitive support project.
+Custom Linux kernel for the Mac Pro 6,1 (Late 2013). Built-in drivers, embedded GPU firmware, hardware-optimized — boots to desktop with no initramfs required.
 
-Custom kernels, hardware documentation, GPU configuration, performance tuning, and macOS virtualization for the "trash can" Mac Pro. Everything you need to run Linux as a first-class operating system on this hardware.
+## What This Is
 
-## Overview
+A kernel config and PKGBUILD for Linux 7.0 that targets Mac Pro 6,1 hardware specifically. Instead of loading hundreds of modules for hardware you don't have, this kernel builds in exactly what the Mac Pro needs:
 
-The Mac Pro 6,1 shipped in late 2013 with workstation-grade components: Xeon E5 processors (4 to 12 cores), dual AMD FirePro GPUs, Thunderbolt 2, and up to 128GB RAM. Apple dropped macOS support years ago, but the hardware is still capable. Linux gives it a second life with modern drivers, active upstream development, and full GPU acceleration.
+- **All GPU variants supported** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware embedded in kernel
+- **12 modules vs 115+ stock**, ~15s userspace boot vs 36s+
+- **Compiler-optimized** — `-march=ivybridge -O3`, 1000Hz tick, full preemption
+- **KVM built-in** — run macOS Tahoe in QEMU without OCLP or legacy kext shims
+- **NVMe + TRIM** — aftermarket NVMe drives work out of the box
 
-The kernel config is based on 7.0-rc1 and includes AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
+## Hardware Support
 
-This project provides:
-
-- **Custom kernel configs** built specifically for Mac Pro 6,1 hardware -- 12 modules loaded vs 115+ on a stock kernel, ~60% faster userspace boot
-- **Hardware documentation** covering every component, driver, and known issue across all model variants
-- **GPU support** for all three FirePro variants (D300, D500, D700) via the amdgpu driver with GCN 1.0 Southern Islands support
-- **Performance tuning** via sysctl profiles and fan curve configurations
-- **macOS Tahoe virtualization** through KVM/QEMU on the custom kernel, without OCLP or legacy kext shims
-- **Packaging** for any Linux distribution -- PKGBUILD for Arch Linux (AUR-ready), with Fedora COPR and openSUSE OBS support planned
-
-## Supported GPU Variants
-
-All Mac Pro 6,1 configurations ship with dual AMD FirePro GPUs. All three variants are supported:
-
-| GPU | VRAM | Codename | GCN Generation | PCI ID |
-|-----|------|----------|----------------|--------|
-| FirePro D300 | 2GB | Pitcairn | GCN 1.0 (Southern Islands) | `1002:6819` |
-| FirePro D500 | 3GB | Tahiti | GCN 1.0 (Southern Islands) | `1002:6798` |
-| FirePro D700 | 6GB | Tahiti XT | GCN 1.0 (Southern Islands) | `1002:6798` |
-
-All variants use the `amdgpu` kernel driver with SI (Southern Islands) support enabled and the `radeonsi` (OpenGL) / `RADV` (Vulkan) Mesa drivers in userspace. Linux kernel 7.0 marks a maturity milestone for GCN 1.0 support in amdgpu -- these GPUs now have better driver support under Linux than they ever did under macOS with OCLP shimming deprecated kexts from 2013.
-
-## Model Variants
-
-| Model | CPU | GPU | RAM |
-|-------|-----|-----|-----|
-| Base | E5-1620 v2 (4C/8T, 3.7GHz) | 2x D300 (2GB) | 12GB |
-| Mid | E5-1650 v2 (6C/12T, 3.5GHz) | 2x D500 (3GB) | 16GB |
-| High | E5-1680 v2 (8C/16T, 3.0GHz) | 2x D700 (6GB) | 32/64GB |
-| BTO Max | E5-2697 v2 (12C/24T, 2.7GHz) | 2x D700 (6GB) | 64GB |
-
-All CPU variants are Ivy Bridge-EP (Xeon E5 v2). The kernel config targets the common architecture; no per-CPU changes are needed.
-
-## Why a Custom Kernel
-
-A stock distribution kernel ships with thousands of modules for hardware you will never have. This project strips all of that away and builds a kernel specifically for the Mac Pro 6,1:
-
-- **12 modules vs 115+ stock** -- only what the hardware actually needs
-- **~60% faster userspace boot** -- 15s vs 36s+ userspace on identical hardware
-- **Minimal config** -- only drivers and features this hardware actually uses
-- **amdgpu as a module (=m)** loaded via initramfs -- required for Apple EFI (see Critical Gotchas)
-- **Tuned scheduling, memory management, and I/O** for the specific hardware profile
-- **AMD GCN 1.0 (Southern Islands) fixes** with GCN 1.0 Southern Islands fixes from upstream
-
-### Performance Expectations
-
-Compared to a stock distribution kernel on the same hardware:
-
-| Metric | Improvement | Notes |
-|--------|------------|-------|
-| Boot time | ~60% faster | 15s vs 36s+ userspace, 12 modules vs 115+ stock |
-| Memory footprint | 100-300MB less | Fewer loaded modules and subsystems |
-| CPU-bound tasks | 2-10% | Minimal config, no bloat |
-| I/O and storage | 5-15% | Tuned scheduler and block layer |
-| System responsiveness | Noticeably improved | 1000Hz tick, PREEMPT, autogroup |
-| GPU stability | Potentially significant | Correct amdgpu module loading, correct firmware, no driver conflicts |
-
-## Critical Gotchas (Apple EFI + amdgpu)
-
-These are hard-won lessons from running amdgpu on Mac Pro 6,1 hardware. Getting any one of these wrong results in a black screen or unbootable system.
-
-**Always poweroff, never reboot, when switching kernels.** Apple EFI does not fully reinitialize the GPU on warm reboot. A cold boot (full power off) clears GPU state completely. Warm reboot leaves the GPU in an inconsistent state and you get a black screen. This applies when switching between stock and custom kernels, or after any kernel update.
-
-**amdgpu MUST be `=m` (module), NOT `=y` (built-in).** On Apple EFI hardware, building amdgpu directly into the kernel (`CONFIG_DRM_AMDGPU=y`) causes initialization failures. The driver must load as a module after the EFI framebuffer hands off. This means an initramfs is required.
-
-**initramfs MUST include the amdgpu module.** In `mkinitcpio.conf`, set `MODULES=(amdgpu)` so the module is available early in boot. Without this, the kernel boots to a black screen because no GPU driver loads before userspace.
-
-**kexec is broken on Apple EFI.** Even a known-working kernel will fail to boot via `kexec`. Apple's EFI firmware does not support the kexec reboot path. Always do a full reboot through firmware.
-
-**apple-gmux is unnecessary and harmful.** The `apple-gmux` driver handles iGPU/dGPU switching on MacBooks. The Mac Pro 6,1 has no iGPU -- it only has dual discrete FirePro GPUs. Loading apple-gmux on this hardware creates 1000+ D-state kworker threads that waste CPU. Disable with `# CONFIG_APPLE_GMUX is not set`.
-
-## macOS Tahoe in KVM
-
-Apple dropped macOS support, and OCLP's path forward for the 6,1 means shimming GPU kexts scavenged from Mavericks (2013) -- 12-year-old driver code patched into a modern OS. This project takes the opposite approach: macOS Tahoe runs in KVM/QEMU on a modern Linux kernel with actively maintained amdgpu drivers underneath.
-
-See [docs/kvm-macos.md](docs/kvm-macos.md) for the full guide. The short version:
-
-1. Build and install the custom kernel (includes KVM and virtio support)
-2. Set up QEMU with OpenCore bootloader
-3. Boot macOS Tahoe
-4. It works. No OCLP. No legacy kext shims.
-
-For the GPU acceleration roadmap (ParavirtualizedGraphics host-side reimplementation), see [docs/pvg-linux.md](docs/pvg-linux.md).
+| Feature | Status | Notes |
+|---------|--------|-------|
+| GPU (D300/D500/D700) | Working | amdgpu built-in with firmware, radeonsi/RADV via Mesa |
+| Display (DP/HDMI) | Working | Via amdgpu + DC |
+| Display (Thunderbolt) | Partial | Works with log spam |
+| Vulkan | Working | Via Mesa RADV |
+| OpenGL | Working | Via Mesa radeonsi |
+| GPU Compute | Limited | OpenCL via Mesa rusticl only — no ROCm for Southern Islands |
+| Ethernet | Working | Both ports via tg3 |
+| Wi-Fi | Proprietary driver | `broadcom-wl-dkms` (AUR) + `linux-macpro61-headers` |
+| Audio (3.5mm) | Working | Intel HDA + Cirrus Logic CS4206 |
+| Audio (HDMI/DP) | Working | Via amdgpu |
+| USB 3.0 | Working | Fresco Logic FL1100 via xHCI |
+| Thunderbolt 2 | Partial | Hotplug log spam |
+| NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
+| Bluetooth | Working | Broadcom via btusb |
+| KVM | Working | macOS Tahoe virtualization |
+| Temperature / Fans | Working | Via applesmc + hwmon; install `macfanctld` (AUR) for fan curves |
+| Sleep/Wake | Disabled | Unreliable on this hardware — explicitly disabled |
 
 ## Quick Start
 
-The kernel config is distro-agnostic -- it works on any Linux distribution. Build it from source with the universal build script, or use the distro-specific packaging below.
-
-### Any Distribution (from source)
-
-```bash
-git clone https://github.com/wolffcatskyy/linux-mac.git
-cd linux-mac
-./scripts/build.sh
-# Installs vmlinuz and modules to standard paths
-# Add a bootloader entry for the new kernel
-# initramfs required -- amdgpu must load as module on Apple EFI
-```
-
-### Arch Linux (PKGBUILD)
+### Arch Linux
 
 ```bash
 git clone https://github.com/wolffcatskyy/linux-mac.git
 cd linux-mac/packaging/arch
 makepkg -s
 sudo pacman -U linux-macpro61-*.pkg.tar.zst
-# Add a systemd-boot entry pointing to vmlinuz-linux-macpro61
-# Ensure MODULES=(amdgpu) in /etc/mkinitcpio.conf, then: mkinitcpio -P
+# Add a systemd-boot entry, then: sudo poweroff
+# IMPORTANT: Always power off, never reboot, when switching kernels (Apple EFI)
 ```
 
-### Fedora / openSUSE
+### Any Distribution
 
-Pre-built packages via Fedora COPR and openSUSE OBS are planned. In the meantime, use the universal build script above.
-
-## Repository Structure
-
-```
-linux-mac/
-├── configs/
-│   └── MacPro6,1/
-│       ├── config              # kernel .config
-│       ├── README.md           # hardware matrix, driver mapping, known issues
-│       ├── patches/            # model-specific kernel patches
-│       ├── sysctl.d/
-│       │   └── 99-macpro.conf  # performance tuning
-│       └── fan/
-│           └── macfanctld.conf # fan curve profiles
-├── packaging/
-│   ├── arch/
-│   │   └── PKGBUILD           # AUR-ready
-│   ├── fedora/                 # planned (COPR)
-│   └── opensuse/              # planned (OBS)
-├── scripts/
-│   └── build.sh               # universal build script
-├── docs/
-│   ├── mesa.md                # GPU userspace setup
-│   ├── kvm-macos.md           # macOS Tahoe VM guide
-│   └── pvg-linux.md           # PVG reimplementation roadmap
-└── README.md
+```bash
+git clone https://github.com/wolffcatskyy/linux-mac.git
+cd linux-mac
+./scripts/build.sh
+# Installs vmlinuz and modules to standard paths
+# Add a bootloader entry, then: sudo poweroff
 ```
 
-## Hardware Support Status
+## Important
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Display (DisplayPort) | Working | Via amdgpu + DC |
-| Display (HDMI) | Working | Via amdgpu + DC |
-| Display (Thunderbolt) | Partial | Works with log spam -- see known issues |
-| OpenGL | Working | Via Mesa radeonsi |
-| Vulkan | Working | Via Mesa RADV |
-| GPU Compute | Working | HSA/OpenCL via ROCm or Mesa |
-| Ethernet | Working | Both ports via tg3 (Broadcom BCM57762) |
-| Wi-Fi | Requires firmware | Broadcom BCM4360 needs proprietary firmware |
-| Audio (3.5mm) | Working | Intel HDA + Cirrus Logic CS4206 |
-| Audio (HDMI/DP) | Working | Via amdgpu HDMI audio |
-| Thunderbolt 2 | Partial | Intel DSL5520, hotplug log spam |
-| USB 3.0 | Working | Via xHCI |
-| Fan control | Working | Via applesmc + macfanctld |
-| Temperature sensors | Working | Via applesmc + hwmon |
-| Sleep/Wake | Disabled | Explicitly disabled — workstation kernel, if it's on it's on |
+**Always power off (not reboot) when switching kernels.** Apple EFI needs a cold boot to reinitialize the GPU. Warm reboot = black screen.
 
-See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware details, PCI device IDs, and known issue workarounds.
+## GPU Variants
+
+| GPU | VRAM | Codename | PCI ID |
+|-----|------|----------|--------|
+| FirePro D300 | 2GB | Pitcairn | `1002:6819` |
+| FirePro D500 | 3GB | Tahiti | `1002:6798` |
+| FirePro D700 | 6GB | Tahiti XT | `1002:6798` |
+
+All use the `amdgpu` driver with `CONFIG_DRM_AMDGPU_SI=y`. Userspace via Mesa `radeonsi` (OpenGL) and `RADV` (Vulkan).
+
+## macOS Tahoe in KVM
+
+Run macOS on a modern Linux kernel with actively maintained drivers — no OCLP, no shimming 2013-era kexts into a modern OS.
+
+See [docs/kvm-macos.md](docs/kvm-macos.md) for the full guide.
+
+## Pre-configured ISO (Coming Soon)
+
+**[AnduinOS](https://www.anduinos.com/)** — Ubuntu LTS with GNOME. Boot a USB, install, everything works. Includes the custom kernel, Mesa 26.1-dev with RADV Vulkan, and macOS Tahoe KVM launcher.
 
 ## Roadmap
 
 | Status | Milestone |
 |--------|-----------|
-| DONE | Custom kernel booting on Mac Pro 6,1 (all GPU variants: D300, D500, D700) |
-| DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
-| DONE | 15s userspace boot (vs 36s+ stock), 12 modules vs 115+ stock |
-| DONE | Kernel 7.0-rc1 with hardware-tuned config, all drivers verified against lspci |
-| COMING SOON | **[AnduinOS](https://www.anduinos.com/)** pre-configured ISO -- boot, install, done |
-| COMING SOON | macOS Tahoe KVM one-click setup (auto-downloads recovery, configures QEMU, desktop icon) |
-| COMING SOON | Mesa 26.1-dev (git) with RADV Vulkan -- latest GCN 1.0 fixes |
-| PLANNED | Pre-built kernel packages (Arch AUR, Fedora COPR, openSUSE OBS) |
-
-## Pre-configured ISO (Coming Soon)
-
-Why spend hours configuring when you can boot a USB stick and have everything working?
-
-We are building ready-to-install ISOs specifically for the Mac Pro 6,1:
-
-| ISO | Base | Desktop | Target |
-|-----|------|---------|--------|
-| **[AnduinOS](https://www.anduinos.com/)** | Ubuntu LTS | GNOME (Windows-like UX) | Users who want stability and familiarity |
-
-The ISO includes:
-- **Custom kernel** with hardware-specific optimizations (amdgpu=m, embedded firmware, no bloat)
-- **Mesa 26.1-dev** with RADV Vulkan for full GPU acceleration on GCN 1.0
-- **macOS Tahoe KVM** one-click desktop launcher (downloads recovery from Apple, pre-configures QEMU)
-- **Pre-configured boot entries** for Mac Pro 6,1 EFI
-- **Fan control** via applesmc + macfanctld
-- **No configuration required** -- boot the USB, click install, done
-
+| Done | Kernel 7.0-rc1 with built-in amdgpu, all GPU variants, verified against lspci |
+| Done | 15s boot, 12 modules, compiler-optimized for Ivy Bridge |
+| Done | KVM + macOS Tahoe virtualization |
+| Coming | AnduinOS pre-configured ISO |
+| Coming | Pre-built packages (Arch AUR, Fedora COPR, openSUSE OBS) |
+| Planned | CachyOS patches (BORE scheduler, BBR3) when 7.x compatible |
 
 ## Contributing
-
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 

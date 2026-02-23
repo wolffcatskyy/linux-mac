@@ -70,7 +70,7 @@ Explicitly disabled in the kernel config (`CONFIG_SUSPEND`, `CONFIG_ACPI_SLEEP`,
 
 | Model | CPU | GPU | RAM |
 |-------|-----|-----|-----|
-| Base | E5-1620 v2 (4C/8T, 3.7GHz) | 2x D300 (2GB) | 12GB |
+| Base | E5-1620 v2 (4C/8T, 3.7GHz) | 2x D300 (2GB) | 16GB |
 | Mid | E5-1650 v2 (6C/12T, 3.5GHz) | 2x D500 (3GB) | 16GB |
 | High | E5-1680 v2 (8C/16T, 3.0GHz) | 2x D700 (6GB) | 32/64GB |
 | BTO Max | E5-2697 v2 (12C/24T, 2.7GHz) | 2x D700 (6GB) | 64GB |
