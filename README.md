@@ -8,7 +8,7 @@ Custom kernels, hardware documentation, GPU configuration, performance tuning, a
 
 The Mac Pro 6,1 shipped in late 2013 with workstation-grade components: Xeon E5 processors (4 to 12 cores), dual AMD FirePro GPUs, Thunderbolt 2, and up to 128GB RAM. Apple dropped macOS support years ago, but the hardware is still capable. Linux gives it a second life with modern drivers, active upstream development, and full GPU acceleration.
 
-The kernel config is based on 7.0-rc1 and includes CachyOS patches with AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
+The kernel config is based on 7.0-rc1 and includes AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
 
 This project provides:
 
@@ -51,7 +51,7 @@ A stock distribution kernel ships with thousands of modules for hardware you wil
 - **CPU-optimized** for Ivy Bridge-EP Xeon processors
 - **amdgpu as a module (=m)** loaded via initramfs -- required for Apple EFI (see Critical Gotchas)
 - **Tuned scheduling, memory management, and I/O** for the specific hardware profile
-- **CachyOS patches (BORE scheduler, performance tuning)** with GCN 1.0 Southern Islands fixes from upstream
+- **AMD GCN 1.0 (Southern Islands) fixes** with GCN 1.0 Southern Islands fixes from upstream
 
 ### Performance Expectations
 
@@ -179,14 +179,13 @@ See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware
 | DONE | Custom kernel booting on Mac Pro 6,1 (all GPU variants: D300, D500, D700) |
 | DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
 | DONE | 42% faster boot (21s vs 36s userspace), 6 modules vs 115 stock |
-| IN PROGRESS | BORE scheduler, march=ivybridge optimization, and CachyOS performance patches |
-| COMING SOON | **[AnduinOS](https://www.anduinos.com/)** and **[AerynOS](https://aerynos.com/)** pre-configured ISOs -- boot, install, done |
+| DONE | Kernel 7.0-rc1 with hardware-tuned config, all drivers verified against lspci |
+| COMING SOON | **[AnduinOS](https://www.anduinos.com/)** pre-configured ISO -- boot, install, done |
 | COMING SOON | macOS Tahoe KVM one-click setup (auto-downloads recovery, configures QEMU, desktop icon) |
 | COMING SOON | Mesa 26.1-dev (git) with RADV Vulkan -- latest GCN 1.0 fixes |
 | PLANNED | Pre-built kernel packages (Arch AUR, Fedora COPR, openSUSE OBS) |
-| PLANNED | Community testing for D300 and D500 GPU variants |
 
-## Pre-configured ISOs (Coming Soon)
+## Pre-configured ISO (Coming Soon)
 
 Why spend hours configuring when you can boot a USB stick and have everything working?
 
@@ -195,9 +194,8 @@ We are building ready-to-install ISOs specifically for the Mac Pro 6,1:
 | ISO | Base | Desktop | Target |
 |-----|------|---------|--------|
 | **[AnduinOS](https://www.anduinos.com/)** | Ubuntu LTS | GNOME (Windows-like UX) | Users who want stability and familiarity |
-| **[AerynOS](https://aerynos.com/)** | Serpent OS | COSMIC/GNOME | Users who want a modern, performance-focused system |
 
-Both ISOs include:
+The ISO includes:
 - **Custom kernel** with hardware-specific optimizations (amdgpu=m, embedded firmware, no bloat)
 - **Mesa 26.1-dev** with RADV Vulkan for full GPU acceleration on GCN 1.0
 - **macOS Tahoe KVM** one-click desktop launcher (downloads recovery from Apple, pre-configures QEMU)
@@ -205,21 +203,9 @@ Both ISOs include:
 - **Fan control** via applesmc + macfanctld
 - **No configuration required** -- boot the USB, click install, done
 
-### Why Two ISOs?
-
-Different users want different things. [AnduinOS](https://www.anduinos.com/) targets users migrating from Windows or macOS who want a familiar desktop. [AerynOS](https://aerynos.com/) targets power users and developers who want a cutting-edge system with the latest packages.
-
-Both ship the same custom kernel and GPU stack. The difference is the userland.
 
 ## Contributing
 
-The best way to contribute is to add support for your Mac model:
-
-1. Install a standard distribution on your Mac
-2. Document what works and what does not
-3. Run `make localmodconfig` to get a starting config
-4. Trim it following the pattern in `configs/MacPro6,1/`
-5. Test, iterate, submit a PR
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 

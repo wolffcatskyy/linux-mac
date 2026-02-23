@@ -4,7 +4,7 @@
 pkgbase=linux-macpro61
 pkgver=7.0rc1
 pkgrel=1
-pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS-patched, BORE scheduler, built-in drivers, no initramfs'
+pkgdesc='Custom Linux kernel for Mac Pro 6,1 — tuned for hardware, built-in drivers'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)

@@ -1,23 +1,20 @@
-# Pre-configured ISOs for Mac Pro 6,1
+# Pre-configured ISO for Mac Pro 6,1
 
 ## Overview
 
-Two ready-to-install ISOs specifically for the Mac Pro 6,1, each including the custom kernel, Mesa 26.1-dev with RADV Vulkan, and macOS Tahoe KVM one-click setup.
+A ready-to-install ISO specifically for the Mac Pro 6,1, including the custom kernel, Mesa 26.1-dev with RADV Vulkan, and macOS Tahoe KVM one-click setup.
 
 | ISO | Base | Desktop | Installer | Target |
 |-----|------|---------|-----------|--------|
 | **AnduinOS** | Ubuntu LTS | GNOME (Windows-like UX) | Calamares | Stability and familiarity |
-| **AerynOS** | Serpent OS | COSMIC/GNOME | Lichen (TUI) | Modern, performance-focused |
-
-Both share the same custom kernel and GPU stack. The difference is the userland.
 
 ## What's Included
 
-These are fully configured, opinionated systems. Everything is pre-configured and working out of the box.
+A fully configured, opinionated system. Everything is pre-configured and working out of the box.
 
-Every ISO ships with:
+The ISO ships with:
 
-- **Desktop environment** — GNOME (AnduinOS) or COSMIC (AerynOS), fully configured
+- **Desktop environment** — GNOME, fully configured
 - **Custom kernel** (`linux-macpro61`) — amdgpu=m, SI support, KVM, no gmux, Ivy Bridge optimized
 - **Mesa 26.1-dev** with RADV Vulkan — latest GCN 1.0 fixes, full GPU acceleration
 - **macOS Tahoe KVM** — desktop icon, one-click setup, auto-downloads recovery directly from Apple
@@ -49,22 +46,6 @@ sudo ./build.sh
 6. Adds sysctl tuning and fan control
 7. Builds bootable ISO with Calamares installer
 
-### AerynOS (Serpent OS-based)
-
-```bash
-# Requires: moss, boulder (AerynOS build tools)
-cd image/aerynos
-sudo ./build.sh
-# Output: dist/linux-mac-aerynos-*.iso
-```
-
-**How it works:**
-1. Uses AerynOS img-tests ISO construction scripts
-2. Builds custom kernel and mesa as stone packages via boulder
-3. Includes macOS Tahoe KVM toolkit
-4. Builds bootable ISO with lichen installer
-
-**Note:** AerynOS tooling is still early-stage (alpha). The AnduinOS ISO is more mature and recommended for initial release.
 
 ## Directory Structure
 
@@ -87,10 +68,6 @@ image/
 │   ├── build.sh           # AnduinOS ISO build script
 │   ├── packages.txt       # Ubuntu packages to add
 │   └── hooks/             # Calamares post-install hooks
-└── aerynos/
-    ├── build.sh           # AerynOS ISO build script
-    ├── stone.yaml         # Custom kernel recipe for boulder
-    └── packages.txt       # AerynOS packages to add
 ```
 
 ## Build Dependencies
@@ -98,11 +75,6 @@ image/
 ### AnduinOS build host
 ```
 debootstrap live-build squashfs-tools xorriso mtools grub-efi-amd64-bin
-```
-
-### AerynOS build host
-```
-moss boulder (from AerynOS os-tools)
 ```
 
 ## Release Workflow
