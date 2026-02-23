@@ -8,7 +8,7 @@ Custom kernels, hardware documentation, GPU configuration, performance tuning, a
 
 The Mac Pro 6,1 shipped in late 2013 with workstation-grade components: Xeon E5 processors (4 to 12 cores), dual AMD FirePro GPUs, Thunderbolt 2, and up to 128GB RAM. Apple dropped macOS support years ago, but the hardware is still capable. Linux gives it a second life with modern drivers, active upstream development, and full GPU acceleration.
 
-The kernel config is based on 6.19 and includes post-6.19 mainline commits with AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
+The kernel config is based on 7.0-rc1 and includes CachyOS patches with AMD GCN 1.0 (Southern Islands) fixes cherry-picked from upstream. These address stability and correctness issues specific to Tahiti/Pitcairn silicon.
 
 This project provides:
 
@@ -29,7 +29,7 @@ All Mac Pro 6,1 configurations ship with dual AMD FirePro GPUs. All three varian
 | FirePro D500 | 3GB | Tahiti | GCN 1.0 (Southern Islands) | `1002:6798` |
 | FirePro D700 | 6GB | Tahiti XT | GCN 1.0 (Southern Islands) | `1002:6798` |
 
-All variants use the `amdgpu` kernel driver with SI (Southern Islands) support enabled and the `radeonsi` (OpenGL) / `RADV` (Vulkan) Mesa drivers in userspace. Linux kernel 6.19 marks a maturity milestone for GCN 1.0 support in amdgpu -- these GPUs now have better driver support under Linux than they ever did under macOS with OCLP shimming deprecated kexts from 2013.
+All variants use the `amdgpu` kernel driver with SI (Southern Islands) support enabled and the `radeonsi` (OpenGL) / `RADV` (Vulkan) Mesa drivers in userspace. Linux kernel 7.0 marks a maturity milestone for GCN 1.0 support in amdgpu -- these GPUs now have better driver support under Linux than they ever did under macOS with OCLP shimming deprecated kexts from 2013.
 
 ## Model Variants
 
@@ -51,7 +51,7 @@ A stock distribution kernel ships with thousands of modules for hardware you wil
 - **CPU-optimized** for Ivy Bridge-EP Xeon processors
 - **amdgpu as a module (=m)** loaded via initramfs -- required for Apple EFI (see Critical Gotchas)
 - **Tuned scheduling, memory management, and I/O** for the specific hardware profile
-- **Post-6.19 mainline commits** with GCN 1.0 Southern Islands fixes from upstream
+- **CachyOS patches (BORE scheduler, performance tuning)** with GCN 1.0 Southern Islands fixes from upstream
 
 ### Performance Expectations
 

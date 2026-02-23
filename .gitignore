@@ -45,3 +45,5 @@ packaging/arch/linux-*.tar.sign
 # macOS Tahoe KVM runtime files
 macos-tahoe-kvm/vm/
 macos-tahoe-kvm/opencore-efi/OpenCore.qcow2
+packaging/arch/linux-7.0-rc1.tar.gz
+configs/MacPro6,1/config-v2-audit

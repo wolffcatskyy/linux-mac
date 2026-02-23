@@ -1,10 +1,10 @@
-# Maintainer: wolffcatskyy <furtive_pleas0z@icloud.com>
+# Maintainer: wolffcatskyy <153394885+wolffcatskyy@users.noreply.github.com>
 # linux-mac: Custom kernel for Mac Pro 6,1
 
 pkgbase=linux-macpro61
-pkgver=6.19.0
-pkgrel=2
-pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS-patched, BORE scheduler, BBR3, built-in drivers, no initramfs'
+pkgver=7.0rc1
+pkgrel=1
+pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS-patched, BORE scheduler, built-in drivers, no initramfs'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)
@@ -31,10 +31,10 @@ _major=${pkgver%%.*}
 _minor=${pkgver#*.}
 _minor=${_minor%%.*}
 _srcver=${_major}.${_minor}
-_srcname=linux-${_srcver}
+_srcname=linux-7.0-rc1
 source=(
-    "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.xz"
-    "https://cdn.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.sign"
+    "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-7.0-rc1.tar.gz"
+    # no signature for rc tarballs
     "config"
     "99-macpro.conf"
 )
@@ -42,12 +42,8 @@ sha256sums=(
     'SKIP'
     'SKIP'
     'SKIP'
-    'SKIP'
 )
-validpgpkeys=(
-    'ABAF11C65A2970B130ABE3C479BE3E4300411886'  # Linus Torvalds
-    '647F28654894E3BD457199BE38DBBDC86092693E'  # Greg Kroah-Hartman
-)
+# No PGP verification for rc tarballs
 
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac
@@ -110,7 +106,7 @@ prepare() {
         patch -Np1 < "$srcdir/$src"
     done
 
-    # Apply CachyOS patches (BORE scheduler, BBR3, performance, fixes)
+    # Apply CachyOS patches (BORE scheduler, performance, fixes)
     # Note: --force needed because BORE (0001) and cachy (0003) both touch
     # kernel/sched/fair.c tunables. The rejected hunk is redundant (BORE
     # already sets SCHED_TUNABLESCALING_NONE which subsumes the cachy tunable change).
@@ -120,6 +116,11 @@ prepare() {
             echo "  Applying $(basename "$patch")..."
             patch -Np1 --force < "$patch" || true
         fi
+    done
+    # Log rejected hunks before cleanup
+    for rej in $(find . -name '*.rej' 2>/dev/null); do
+        echo "WARNING: Rejected hunk: $rej"
+        cat "$rej"
     done
     # Clean up any .rej files from force-applied patches
     find . -name '*.rej' -delete
@@ -131,15 +132,15 @@ prepare() {
     # no-initramfs boot on Mac Pro 6,1.
     echo "Enforcing Mac Pro 6,1 critical built-in drivers..."
     local _critical_builtin=(
-        CONFIG_DRM_AMDGPU
-        CONFIG_DRM_RADEON
+        # CONFIG_DRM_AMDGPU  # MUST stay =m for Apple EFI — loaded via initramfs
         CONFIG_TIGON3
-        CONFIG_THUNDERBOLT
+        CONFIG_USB4
+        CONFIG_SOUND
+        CONFIG_SND_HDA_INTEL
         CONFIG_SATA_AHCI
         CONFIG_SENSORS_APPLESMC
         CONFIG_EFI_STUB
         CONFIG_MODULES
-        CONFIG_SND_HDA_INTEL
         CONFIG_USB_XHCI_HCD
         CONFIG_USB_XHCI_PCI
     )
@@ -159,15 +160,35 @@ prepare() {
     # Re-resolve dependencies after forcing options
     make olddefconfig
 
+    # CRITICAL: olddefconfig silently flips DRM_AMDGPU from =m to =y
+    # Apple EFI REQUIRES amdgpu as module loaded via initramfs
+    # This sed MUST run AFTER the final olddefconfig — no olddefconfig after this point
+    # Force AMDGPU to module regardless of current state
+    if grep -q "CONFIG_DRM_AMDGPU=y" .config; then
+        sed -i "s/^CONFIG_DRM_AMDGPU=y$/CONFIG_DRM_AMDGPU=m/" .config
+        echo "  Fixed AMDGPU: y -> m"
+    elif grep -q "# CONFIG_DRM_AMDGPU is not set" .config; then
+        sed -i "s/^# CONFIG_DRM_AMDGPU is not set$/CONFIG_DRM_AMDGPU=m/" .config
+        echo "  Fixed AMDGPU: not set -> m"
+    elif grep -q "CONFIG_DRM_AMDGPU=m" .config; then
+        echo "  AMDGPU already =m (correct)"
+    else
+        echo "CONFIG_DRM_AMDGPU=m" >> .config
+        echo "  Added AMDGPU=m"
+    fi
+
     # Verify critical options are set
     echo "Verifying config..."
-    grep -q "CONFIG_DRM_AMDGPU=y" .config || echo "FATAL: AMDGPU not built-in!"
+    grep -q "CONFIG_DRM_AMDGPU=m" .config || { echo "FATAL: AMDGPU not module (=m)! Apple EFI requires module loaded via initramfs"; return 1; }
     grep -q "CONFIG_SENSORS_APPLESMC=y" .config || echo "WARNING: Apple SMC not built-in!"
     grep -q "CONFIG_EFI_STUB=y" .config || echo "WARNING: EFI stub not enabled!"
     grep -q "CONFIG_MODULES=y" .config || echo "WARNING: Modules not enabled!"
-    grep -q "CONFIG_TIGON3=y" .config || echo "FATAL: Broadcom NIC not built-in!"
-    grep -q "CONFIG_SATA_AHCI=y" .config || echo "FATAL: AHCI not built-in!"
+    grep -q "CONFIG_TIGON3=y" .config || { echo "FATAL: Broadcom NIC not built-in!"; return 1; }
+    grep -q "CONFIG_SATA_AHCI=y" .config || { echo "FATAL: AHCI not built-in!"; return 1; }
     grep -q "CONFIG_THUNDERBOLT=y" .config || echo "WARNING: Thunderbolt not built-in!"
+    grep -q "CONFIG_USB4=y" .config || echo "WARNING: USB4 not built-in!"
+    grep -q "CONFIG_TCP_CONG_BBR=y" .config || echo "WARNING: BBR not enabled!"
+    grep -q "CONFIG_SCHED_BORE=y" .config || echo "WARNING: BORE scheduler not enabled!"
 
     make -s kernelrelease > version
     echo "Prepared linux version: $(<version)"
@@ -175,7 +196,7 @@ prepare() {
 
 build() {
     cd "$_srcname"
-    make -j"$(nproc)" all
+    make -j8 all
 }
 
 _package() {
