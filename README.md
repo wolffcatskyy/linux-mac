@@ -12,7 +12,7 @@ The kernel config is based on 7.0-rc1 and includes AMD GCN 1.0 (Southern Islands
 
 This project provides:
 
-- **Custom kernel configs** built specifically for Mac Pro 6,1 hardware -- 6 modules loaded vs 115 on a stock kernel, 42% faster boot
+- **Custom kernel configs** built specifically for Mac Pro 6,1 hardware -- 12 modules loaded vs 115+ on a stock kernel, ~60% faster userspace boot
 - **Hardware documentation** covering every component, driver, and known issue across all model variants
 - **GPU support** for all three FirePro variants (D300, D500, D700) via the amdgpu driver with GCN 1.0 Southern Islands support
 - **Performance tuning** via sysctl profiles and fan curve configurations
@@ -46,9 +46,9 @@ All CPU variants are Ivy Bridge-EP (Xeon E5 v2). The kernel config targets the c
 
 A stock distribution kernel ships with thousands of modules for hardware you will never have. This project strips all of that away and builds a kernel specifically for the Mac Pro 6,1:
 
-- **6 modules vs 115 stock** -- only what the hardware actually needs
-- **42% faster boot** -- 21s vs 36s userspace on identical hardware
-- **CPU-optimized** for Ivy Bridge-EP Xeon processors
+- **12 modules vs 115+ stock** -- only what the hardware actually needs
+- **~60% faster userspace boot** -- 15s vs 36s+ userspace on identical hardware
+- **Minimal config** -- only drivers and features this hardware actually uses
 - **amdgpu as a module (=m)** loaded via initramfs -- required for Apple EFI (see Critical Gotchas)
 - **Tuned scheduling, memory management, and I/O** for the specific hardware profile
 - **AMD GCN 1.0 (Southern Islands) fixes** with GCN 1.0 Southern Islands fixes from upstream
@@ -59,9 +59,9 @@ Compared to a stock distribution kernel on the same hardware:
 
 | Metric | Improvement | Notes |
 |--------|------------|-------|
-| Boot time | 42% faster | 6 modules loaded vs 115, measured on identical hardware |
+| Boot time | ~60% faster | 15s vs 36s+ userspace, 12 modules vs 115+ stock |
 | Memory footprint | 100-300MB less | Fewer loaded modules and subsystems |
-| CPU-bound tasks | 2-10% | Compiled for Ivy Bridge-EP specifically |
+| CPU-bound tasks | 2-10% | Minimal config, no bloat |
 | I/O and storage | 5-15% | Tuned scheduler and block layer |
 | System responsiveness | Noticeably improved | 1000Hz tick, PREEMPT, autogroup |
 | GPU stability | Potentially significant | Correct amdgpu module loading, correct firmware, no driver conflicts |
@@ -178,7 +178,7 @@ See [configs/MacPro6,1/README.md](configs/MacPro6,1/README.md) for full hardware
 |--------|-----------|
 | DONE | Custom kernel booting on Mac Pro 6,1 (all GPU variants: D300, D500, D700) |
 | DONE | Minimal driver set -- amdgpu (module) with firmware, tg3, Apple hardware (applesmc, SSD, USB, audio) |
-| DONE | 42% faster boot (21s vs 36s userspace), 6 modules vs 115 stock |
+| DONE | 15s userspace boot (vs 36s+ stock), 12 modules vs 115+ stock |
 | DONE | Kernel 7.0-rc1 with hardware-tuned config, all drivers verified against lspci |
 | COMING SOON | **[AnduinOS](https://www.anduinos.com/)** pre-configured ISO -- boot, install, done |
 | COMING SOON | macOS Tahoe KVM one-click setup (auto-downloads recovery, configures QEMU, desktop icon) |
