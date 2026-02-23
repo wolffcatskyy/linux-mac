@@ -185,8 +185,7 @@ prepare() {
     grep -q "CONFIG_MODULES=y" .config || echo "WARNING: Modules not enabled!"
     grep -q "CONFIG_TIGON3=y" .config || { echo "FATAL: Broadcom NIC not built-in!"; return 1; }
     grep -q "CONFIG_SATA_AHCI=y" .config || { echo "FATAL: AHCI not built-in!"; return 1; }
-    grep -q "CONFIG_THUNDERBOLT=y" .config || echo "WARNING: Thunderbolt not built-in!"
-    grep -q "CONFIG_USB4=y" .config || echo "WARNING: USB4 not built-in!"
+    grep -q "CONFIG_USB4=y" .config || echo "WARNING: USB4 (Thunderbolt) not built-in!"
     grep -q "CONFIG_TCP_CONG_BBR=y" .config || echo "WARNING: BBR not enabled!"
     grep -q "CONFIG_SCHED_BORE=y" .config || echo "WARNING: BORE scheduler not enabled!"
 
