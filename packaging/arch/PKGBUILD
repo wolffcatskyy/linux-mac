@@ -47,6 +47,7 @@ sha256sums=(
 
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac
+export KCFLAGS="-march=ivybridge -O3"
 
 _decompress_firmware() {
     # Arch linux-firmware ships .bin.zst files but EXTRA_FIRMWARE needs .bin
@@ -62,6 +63,13 @@ _decompress_firmware() {
         amdgpu/tahiti_smc.bin
         amdgpu/tahiti_uvd.bin
         amdgpu/vce_1_0_0.bin
+        amdgpu/pitcairn_ce.bin
+        amdgpu/pitcairn_mc.bin
+        amdgpu/pitcairn_me.bin
+        amdgpu/pitcairn_pfp.bin
+        amdgpu/pitcairn_rlc.bin
+        amdgpu/pitcairn_smc.bin
+        amdgpu/pitcairn_uvd.bin
     )
 
     local staging="$srcdir/firmware"
@@ -106,43 +114,31 @@ prepare() {
         patch -Np1 < "$srcdir/$src"
     done
 
-    # Apply CachyOS patches (BORE scheduler, performance, fixes)
-    # Note: --force needed because BORE (0001) and cachy (0003) both touch
-    # kernel/sched/fair.c tunables. The rejected hunk is redundant (BORE
-    # already sets SCHED_TUNABLESCALING_NONE which subsumes the cachy tunable change).
-    echo "Applying CachyOS patches..."
-    for patch in "$startdir"/../../patches/cachyos/*.patch; do
-        if [[ -f "$patch" ]]; then
-            echo "  Applying $(basename "$patch")..."
-            patch -Np1 --force < "$patch" || true
-        fi
-    done
-    # Log rejected hunks before cleanup
-    for rej in $(find . -name '*.rej' 2>/dev/null); do
-        echo "WARNING: Rejected hunk: $rej"
-        cat "$rej"
-    done
-    # Clean up any .rej files from force-applied patches
-    find . -name '*.rej' -delete
 
     make olddefconfig
 
-    # CachyOS patches may change Kconfig dependencies that switch critical
-    # built-in drivers to modules. Force them back to built-in (=y) for
-    # no-initramfs boot on Mac Pro 6,1.
+    # Force critical drivers to built-in (=y) — olddefconfig may flip them.
     echo "Enforcing Mac Pro 6,1 critical built-in drivers..."
     local _critical_builtin=(
-        # CONFIG_DRM_AMDGPU  # MUST stay =m for Apple EFI — loaded via initramfs
+        CONFIG_DRM_AMDGPU
         CONFIG_TIGON3
         CONFIG_USB4
         CONFIG_SOUND
+        CONFIG_SND
+        CONFIG_SND_HDA
         CONFIG_SND_HDA_INTEL
+        CONFIG_SND_HDA_CODEC_CIRRUS
+        CONFIG_SND_HDA_CODEC_HDMI
         CONFIG_SATA_AHCI
+        CONFIG_BLK_DEV_NVME
         CONFIG_SENSORS_APPLESMC
         CONFIG_EFI_STUB
         CONFIG_MODULES
         CONFIG_USB_XHCI_HCD
         CONFIG_USB_XHCI_PCI
+        CONFIG_KVM
+        CONFIG_KVM_INTEL
+        CONFIG_OVERLAY_FS
     )
     for opt in "${_critical_builtin[@]}"; do
         if grep -q "^${opt}=m" .config; then
@@ -160,34 +156,21 @@ prepare() {
     # Re-resolve dependencies after forcing options
     make olddefconfig
 
-    # CRITICAL: olddefconfig silently flips DRM_AMDGPU from =m to =y
-    # Apple EFI REQUIRES amdgpu as module loaded via initramfs
-    # This sed MUST run AFTER the final olddefconfig — no olddefconfig after this point
-    # Force AMDGPU to module regardless of current state
-    if grep -q "CONFIG_DRM_AMDGPU=y" .config; then
-        sed -i "s/^CONFIG_DRM_AMDGPU=y$/CONFIG_DRM_AMDGPU=m/" .config
-        echo "  Fixed AMDGPU: y -> m"
-    elif grep -q "# CONFIG_DRM_AMDGPU is not set" .config; then
-        sed -i "s/^# CONFIG_DRM_AMDGPU is not set$/CONFIG_DRM_AMDGPU=m/" .config
-        echo "  Fixed AMDGPU: not set -> m"
-    elif grep -q "CONFIG_DRM_AMDGPU=m" .config; then
-        echo "  AMDGPU already =m (correct)"
-    else
-        echo "CONFIG_DRM_AMDGPU=m" >> .config
-        echo "  Added AMDGPU=m"
-    fi
 
     # Verify critical options are set
     echo "Verifying config..."
-    grep -q "CONFIG_DRM_AMDGPU=m" .config || { echo "FATAL: AMDGPU not module (=m)! Apple EFI requires module loaded via initramfs"; return 1; }
+    grep -q "CONFIG_DRM_AMDGPU=y" .config || { echo "FATAL: AMDGPU not built-in!"; return 1; }
+    grep -q "CONFIG_DRM_AMDGPU_SI=y" .config || { echo "FATAL: Southern Islands support not enabled!"; return 1; }
     grep -q "CONFIG_SENSORS_APPLESMC=y" .config || echo "WARNING: Apple SMC not built-in!"
     grep -q "CONFIG_EFI_STUB=y" .config || echo "WARNING: EFI stub not enabled!"
     grep -q "CONFIG_MODULES=y" .config || echo "WARNING: Modules not enabled!"
     grep -q "CONFIG_TIGON3=y" .config || { echo "FATAL: Broadcom NIC not built-in!"; return 1; }
     grep -q "CONFIG_SATA_AHCI=y" .config || { echo "FATAL: AHCI not built-in!"; return 1; }
     grep -q "CONFIG_USB4=y" .config || echo "WARNING: USB4 (Thunderbolt) not built-in!"
-    grep -q "CONFIG_TCP_CONG_BBR=y" .config || echo "WARNING: BBR not enabled!"
-    grep -q "CONFIG_SCHED_BORE=y" .config || echo "WARNING: BORE scheduler not enabled!"
+    grep -q "CONFIG_SND_HDA_INTEL=y" .config || echo "WARNING: HDA Intel not built-in!"
+    grep -q "CONFIG_SND_HDA_CODEC_CIRRUS=y" .config || echo "WARNING: Cirrus codec not built-in!"
+    grep -q "CONFIG_KVM=y" .config || echo "WARNING: KVM not enabled!"
+    grep -q "CONFIG_BLK_DEV_NVME=y" .config || echo "WARNING: NVMe not built-in!"
 
     make -s kernelrelease > version
     echo "Prepared linux version: $(<version)"
