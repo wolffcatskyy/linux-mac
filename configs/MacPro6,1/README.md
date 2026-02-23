@@ -9,10 +9,14 @@
 | **Ethernet** | Broadcom BCM57762 Dual Gigabit | `tg3` | `CONFIG_TIGON3=y` |
 | **Wi-Fi** | Broadcom BCM4360 802.11ac | `wl` (proprietary) | Out-of-tree: `broadcom-wl-dkms` (AUR) |
 | **Audio** | Intel HDA + Cirrus Logic CS4206 | `snd_hda_intel` | `CONFIG_SND_HDA_INTEL=y`, `CONFIG_SND_HDA_CODEC_CIRRUS=y` |
-| **Storage** | Apple PCIe SSD (AHCI) | `ahci` | `CONFIG_AHCI=y` |
-| **Thunderbolt** | Intel DSL5520 (Thunderbolt 2) | `thunderbolt` | `CONFIG_THUNDERBOLT=y` |
-| **USB** | Intel USB 3.0 (xHCI) | `xhci_hcd` | `CONFIG_USB_XHCI_HCD=y` |
+| **Storage** | Apple PCIe SSD (AHCI) + aftermarket NVMe | `ahci`, `nvme` | `CONFIG_SATA_AHCI=y`, `CONFIG_BLK_DEV_NVME=y` |
+| **Thunderbolt** | Intel DSL5520 Falcon Ridge (Thunderbolt 2) + Light Ridge | `thunderbolt` | `CONFIG_USB4=y` |
+| **USB 3.0** | Fresco Logic FL1100 | `xhci_hcd` | `CONFIG_USB_XHCI_HCD=y` |
+| **USB 2.0** | Intel C600 EHCI + Pericom (via TB) | `ehci-hcd`, `ohci-hcd` | `CONFIG_USB_EHCI_HCD=y` |
 | **Thermal** | Apple SMC | `applesmc` | `CONFIG_SENSORS_APPLESMC=y` |
+| **FireWire** | LSI FW643 (IEEE 1394b) | `firewire-ohci` | `CONFIG_FIREWIRE_OHCI=y` |
+| **NVMe** | Aftermarket via PCIe adapter (common upgrade) | `nvme` | `CONFIG_BLK_DEV_NVME=y` |
+| **Bluetooth** | Broadcom (via USB) | `btusb` | `CONFIG_BT_HCIBTUSB=y` |
 | **Boot** | EFI | — | `CONFIG_EFI=y`, `CONFIG_EFI_STUB=y` |
 
 ## GPU Details
@@ -41,6 +45,9 @@ The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). I
 | Thunderbolt | ⚠️ Works with issues | Hotplug log spam |
 | USB 3.0 | ✅ Works | Via xHCI |
 | Sleep/Wake | ❌ Disabled | Explicitly disabled in kernel config |
+| NVMe + TRIM | ✅ Works | Built-in; enable `fstrim.timer` or `discard` mount option |
+| FireWire | ✅ Works | Via firewire-ohci |
+| Bluetooth | ✅ Works | Via btusb |
 | Fan Control | ✅ Works | Via applesmc + macfanctld |
 | Temperature Sensors | ✅ Works | Via applesmc + hwmon |
 
@@ -77,15 +84,24 @@ All Mac Pro 6,1 configurations share the same Thunderbolt controller, ethernet, 
 ## PCI Device IDs
 
 ```
-GPU 1:    1002:6798 (AMD Tahiti XT [FirePro D700])
-GPU 2:    1002:6798 (AMD Tahiti XT [FirePro D700])
-Audio 1:  1002:aac8 (AMD HDMI Audio)
-Audio 2:  1002:aac8 (AMD HDMI Audio)
-NIC:      14e4:16b4 (Broadcom BCM57762)
-TB:       8086:156c (Intel DSL5520 Thunderbolt)
-USB:      8086:1e31 (Intel xHCI)
-HDA:      8086:1e20 (Intel HDA)
-SSD:      144d:* or similar (varies by SSD)
+GPU 1:      1002:6798  AMD Tahiti XT [FirePro D700]
+GPU 2:      1002:6798  AMD Tahiti XT [FirePro D700]
+HDMI Audio: 1002:aaa0  AMD Tahiti HDMI Audio (x2)
+HDA:        8086:1d20  Intel C600/X79 HD Audio (Cirrus Logic CS4206)
+NIC 1:      14e4:1682  Broadcom BCM57762 Gigabit Ethernet
+NIC 2:      14e4:1682  Broadcom BCM57762 Gigabit Ethernet
+NIC 3:      14e4:16b0  Broadcom BCM57761 (via Thunderbolt)
+Wi-Fi:      14e4:43a0  Broadcom BCM4360 802.11ac
+TB (FR):    8086:156c  Intel DSL5520 Falcon Ridge NHI (Thunderbolt 2)
+TB (LR):    8086:1513  Intel CV82524 Light Ridge (Thunderbolt 1)
+USB 3.0:    1b73:1100  Fresco Logic FL1100 xHCI
+USB 2.0:    8086:1d26  Intel C600/X79 EHCI
+USB (TB):   12d8:400e  Pericom OHCI/EHCI (via Thunderbolt)
+PCIe SW:    10b5:8723  PLX PEX 8723 6-port PCIe Switch
+FireWire:   11c1:5901  LSI FW643 IEEE 1394b
+SSD:        144d:a801  Samsung Apple-slot AHCI (varies)
+SMBus:      8086:1d22  Intel C600/X79 SMBus
+MEI:        8086:1d3a  Intel Management Engine Interface
 ```
 
 Use `lspci -nn` on your system to verify.
