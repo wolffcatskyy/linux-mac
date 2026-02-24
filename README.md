@@ -67,9 +67,8 @@ Built on the CachyOS 7.0 patch set:
 | Done | CachyOS 7.0 base with BORE, BBR3, built-in amdgpu |
 | Done | All GPU variants, verified against lspci |
 | Done | KVM + macOS Tahoe virtualization |
-| Coming | CachyOS-based Mac Pro ISO (KDE Plasma) |
-| Coming | Pre-built packages (Arch AUR, Fedora COPR, openSUSE OBS) |
-| Planned | Driver trimming — remove unused hardware for faster builds |
+| Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/wolffcatskyy/cachyos-macpro-iso) |
+| Done | Driver trimming — removed ~3000 unused config options for faster builds |
 
 
 ## Boot Configuration
