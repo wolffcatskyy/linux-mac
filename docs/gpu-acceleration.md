@@ -155,8 +155,8 @@ The linux-macpro61 kernel and ISO set these automatically:
 
 ```
 amdgpu.si_support=1    # Enable Southern Islands in amdgpu
-# radeon driver is not built into this kernel — no conflict possible
 amdgpu.dc=0            # Display Core off (SI uses legacy display path)
+acpi_mask_gpe=0x16     # Mask Thunderbolt ACPI storm (GPE16 on Mac Pro 6,1)
 ```
 
 The modprobe config (`/etc/modprobe.d/macpro-gpu.conf`) ensures these persist after installation.
