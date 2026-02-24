@@ -176,21 +176,11 @@ The modprobe config (`/etc/modprobe.d/macpro-gpu.conf`) ensures these persist af
 | Not possible | ROCm / HIP | AMD hardware requirement: GCN 3.0+ |
 | Not possible | HEVC / VP9 / AV1 decode | Hardware limitation |
 
-## macOS GPU Acceleration (KVM)
+## macOS Tahoe in KVM
 
-macOS Tahoe runs in KVM/QEMU on this kernel. Currently **without GPU acceleration** (virtio-vga only). The path to GPU acceleration is through ParavirtualizedGraphics (PVG):
+This kernel includes KVM support. macOS Tahoe runs in QEMU with full host GPU acceleration underneath -- the host uses amdgpu with Mesa's radeonsi (OpenGL 4.6) and RADV (Vulkan 1.3+) at native speed.
 
-```
-macOS Metal app
-  -> PVG guest driver (built into macOS)
-  -> apple-gfx-pci (QEMU 10.0+)
-  -> PVG host implementation (needs reverse engineering)
-  -> Mesa radeonsi/RADV
-  -> amdgpu kernel driver
-  -> D300/D500/D700 hardware
-```
-
-The host side doesn't exist on Linux yet. See [pvg-linux.md](pvg-linux.md) for the full analysis and roadmap.
+The macOS guest currently uses virtio-vga (no 3D inside the VM). Paravirtualized GPU for the guest (PVG -- translating Metal commands through Mesa on the host) is a separate research effort. See [pvg-linux.md](pvg-linux.md) for details.
 
 ## Compared to macOS (OCLP)
 
