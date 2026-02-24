@@ -1,102 +1,81 @@
 # linux-mac
 
-Custom Linux kernel for the Mac Pro 6,1 (Late 2013). Built-in drivers, embedded GPU firmware, hardware-optimized — boots to desktop with no initramfs required.
+Custom Linux kernel for the Mac Pro 6,1 (Late 2013). CachyOS-based with BORE scheduler, built-in drivers, embedded GPU firmware — boots to desktop with no initramfs required.
 
 ## What This Is
 
-A kernel config and PKGBUILD for Linux 7.0 that targets Mac Pro 6,1 hardware specifically. Instead of loading hundreds of modules for hardware you don't have, this kernel builds in exactly what the Mac Pro needs:
+A kernel config and PKGBUILD for Linux 7.0 targeting Mac Pro 6,1 hardware. CachyOS 7.0 base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
 
-- **All GPU variants supported** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware embedded in kernel
-- **12 modules vs 115+ stock**, ~15s userspace boot vs 36s+
-- **Compiler-optimized** — `-march=ivybridge -O3`, 1000Hz tick, full preemption
-- **KVM built-in** — run macOS Tahoe in QEMU without OCLP or legacy kext shims
+- **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
+- **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
+- **KVM built-in** — run macOS Tahoe in QEMU
 - **NVMe + TRIM** — aftermarket NVMe drives work out of the box
 
 ## Hardware Support
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| GPU (D300/D500/D700) | Working | amdgpu built-in with firmware, radeonsi/RADV via Mesa |
+| GPU (D300/D500/D700) | Working | amdgpu built-in, radeonsi/RADV via Mesa |
 | Display (DP/HDMI) | Working | Via amdgpu + DC |
-| Display (Thunderbolt) | Partial | Works with log spam |
-| Vulkan | Working | Via Mesa RADV |
-| OpenGL | Working | Via Mesa radeonsi |
-| GPU Compute | Limited | OpenCL via Mesa rusticl only — no ROCm for Southern Islands |
-| Ethernet | Working | Both ports via tg3 |
-| Wi-Fi | Proprietary driver | `broadcom-wl-dkms` (AUR) + `linux-macpro61-headers` |
-| Audio (3.5mm) | Working | Intel HDA + Cirrus Logic CS4206 |
-| Audio (HDMI/DP) | Working | Via amdgpu |
-| USB 3.0 | Working | Fresco Logic FL1100 via xHCI |
-| Thunderbolt 2 | Partial | Hotplug log spam |
+| Vulkan / OpenGL | Working | Mesa RADV / radeonsi |
+| GPU Compute | Limited | OpenCL via rusticl only — no ROCm for Southern Islands |
+| Ethernet | Working | Both ports via tg3 + Broadcom PHY |
+| Wi-Fi | Proprietary | `broadcom-wl-dkms` (AUR) + headers package |
+| Audio | Working | Intel HDA + Cirrus CS4206, HDMI/DP via amdgpu |
+| USB 3.0 | Working | xHCI |
+| Thunderbolt 2 | Partial | Works with log spam |
 | NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
 | Bluetooth | Working | Broadcom via btusb |
 | KVM | Working | macOS Tahoe virtualization |
-| Temperature / Fans | Working | Via applesmc + hwmon; install `macfanctld` (AUR) for fan curves |
-| Sleep/Wake | Disabled | Unreliable on this hardware — explicitly disabled |
+| Fans / Thermal | Working | applesmc + hwmon; install `macfanctld` (AUR) |
+| Sleep/Wake | Disabled | Unreliable on this hardware |
 
 ## Quick Start
-
-### Arch Linux
 
 ```bash
 git clone https://github.com/wolffcatskyy/linux-mac.git
 cd linux-mac/packaging/arch
 makepkg -s
 sudo pacman -U linux-macpro61-*.pkg.tar.zst
-# Add a systemd-boot entry, then: sudo poweroff
-# IMPORTANT: Always power off, never reboot, when switching kernels (Apple EFI)
-```
-
-### Any Distribution
-
-```bash
-git clone https://github.com/wolffcatskyy/linux-mac.git
-cd linux-mac
-./scripts/build.sh
-# Installs vmlinuz and modules to standard paths
-# Add a bootloader entry, then: sudo poweroff
+sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kernels
 ```
 
 ## Important
 
-**Always power off (not reboot) when switching kernels.** Apple EFI needs a cold boot to reinitialize the GPU. Warm reboot = black screen.
+**Always power off (not reboot) when switching kernels.** Apple EFI needs a cold boot to reinitialize the GPU.
 
-## GPU Variants
+## CachyOS Patches
 
-| GPU | VRAM | Codename | PCI ID |
-|-----|------|----------|--------|
-| FirePro D300 | 2GB | Pitcairn | `1002:6819` |
-| FirePro D500 | 3GB | Tahiti | `1002:6798` |
-| FirePro D700 | 6GB | Tahiti XT | `1002:6798` |
-
-All use the `amdgpu` driver with `CONFIG_DRM_AMDGPU_SI=y`. Userspace via Mesa `radeonsi` (OpenGL) and `RADV` (Vulkan).
-
-## macOS Tahoe in KVM
-
-Run macOS on a modern Linux kernel with actively maintained drivers — no OCLP, no shimming 2013-era kexts into a modern OS.
-
-See [docs/kvm-macos.md](docs/kvm-macos.md) for the full guide.
-
-## Pre-configured ISO (Coming Soon)
-
-**[AnduinOS](https://www.anduinos.com/)** — Ubuntu LTS with GNOME. Boot a USB, install, everything works. Includes the custom kernel, Mesa 26.1-dev with RADV Vulkan, and macOS Tahoe KVM launcher.
+Built on the CachyOS 7.0 patch set:
+- **BORE** — Burst-Oriented Response Enhancer scheduler
+- **BBR3** — Google TCP congestion control v3
+- **CachyOS tweaks** — kernel optimizations
+- **HDMI improvements** — display fixes
 
 ## Roadmap
 
 | Status | Milestone |
 |--------|-----------|
-| Done | Kernel 7.0-rc1 with built-in amdgpu, all GPU variants, verified against lspci |
-| Done | 15s boot, 12 modules, compiler-optimized for Ivy Bridge |
+| Done | CachyOS 7.0 base with BORE, BBR3, built-in amdgpu |
+| Done | All GPU variants, verified against lspci |
 | Done | KVM + macOS Tahoe virtualization |
-| Coming | AnduinOS pre-configured ISO |
+| Coming | CachyOS-based Mac Pro ISO (KDE Plasma) |
 | Coming | Pre-built packages (Arch AUR, Fedora COPR, openSUSE OBS) |
-| Planned | CachyOS patches (BORE scheduler, BBR3) when 7.x compatible |
+| Planned | Driver trimming — remove unused hardware for faster builds |
 
-## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+## Boot Configuration
+
+**systemd-boot** with ESP at \`/boot/efi/\` (FAT32).
+
+### Gotchas
+
+1. **ESP vs /boot** - pacman installs to \`/boot/\` (root partition) but systemd-boot reads from \`/boot/efi/\` (ESP). The package install hook syncs automatically.
+
+2. **Cold boot only** - Apple EFI needs full power cycle for GPU init. The package masks \`reboot.target\` and aliases \`reboot\` to \`poweroff\` automatically.
+
+3. **Boot entries** - Default: \`linux-macpro61.conf\` (custom kernel), fallback: \`arch-6.19.conf\` (stock).
 
 ## License
 
-Kernel configs and patches: GPL-2.0 (same as the Linux kernel)
-Scripts and documentation: MIT
+GPL-2.0 (same as the Linux kernel)

@@ -4,7 +4,8 @@
 pkgbase=linux-macpro61
 pkgver=7.0rc1
 pkgrel=1
-pkgdesc='Custom Linux kernel for Mac Pro 6,1 — tuned for hardware, built-in drivers'
+pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
+install=linux-macpro61.install
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)
@@ -37,8 +38,20 @@ source=(
     # no signature for rc tarballs
     "config"
     "99-macpro.conf"
+    # CachyOS 7.0 patches
+    "0001-bore.patch"
+    "0002-bbr3.patch"
+    "0003-cachy.patch"
+    "0004-fixes.patch"
+    "0005-hdmi.patch"
 )
+
 sha256sums=(
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
+    'SKIP'
     'SKIP'
     'SKIP'
     'SKIP'
@@ -47,7 +60,8 @@ sha256sums=(
 
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac
-export KCFLAGS="-march=ivybridge -O3"
+export KCFLAGS="-march=ivybridge -O3 -pipe"
+export PATH="/usr/lib/ccache/bin:$PATH"
 
 _decompress_firmware() {
     # Arch linux-firmware ships .bin.zst files but EXTRA_FIRMWARE needs .bin
@@ -111,9 +125,14 @@ prepare() {
         src="${src%.zst}"
         [[ $src = *.patch ]] || continue
         echo "Applying patch $src..."
-        patch -Np1 < "$srcdir/$src"
+        patch -Np1 --force < "$srcdir/$src" || true
     done
 
+
+    # Enable BORE scheduler (added by CachyOS patch)
+    echo "Enabling BORE scheduler..."
+    sed -i 's/^# CONFIG_SCHED_BORE is not set/CONFIG_SCHED_BORE=y/' .config
+    grep -q "CONFIG_SCHED_BORE=y" .config || echo "CONFIG_SCHED_BORE=y" >> .config
 
     make olddefconfig
 
@@ -139,6 +158,8 @@ prepare() {
         CONFIG_KVM
         CONFIG_KVM_INTEL
         CONFIG_OVERLAY_FS
+        CONFIG_BROADCOM_PHY
+        CONFIG_TCP_CONG_BBR
     )
     for opt in "${_critical_builtin[@]}"; do
         if grep -q "^${opt}=m" .config; then
@@ -156,6 +177,15 @@ prepare() {
     # Re-resolve dependencies after forcing options
     make olddefconfig
 
+    # Re-force critical drivers after olddefconfig (it may reset some)
+    echo "Re-enforcing critical built-in drivers after olddefconfig..."
+    for opt in "${_critical_builtin[@]}"; do
+        if grep -q "^${opt}=m" .config; then
+            echo "  Re-fixing ${opt}: m -> y"
+            sed -i "s/^${opt}=m/${opt}=y/" .config
+        fi
+    done
+
 
     # Verify critical options are set
     echo "Verifying config..."
@@ -171,6 +201,9 @@ prepare() {
     grep -q "CONFIG_SND_HDA_CODEC_CIRRUS=y" .config || echo "WARNING: Cirrus codec not built-in!"
     grep -q "CONFIG_KVM=y" .config || echo "WARNING: KVM not enabled!"
     grep -q "CONFIG_BLK_DEV_NVME=y" .config || echo "WARNING: NVMe not built-in!"
+    grep -q "CONFIG_SCHED_BORE=y" .config || echo "WARNING: BORE scheduler not enabled!"
+    grep -q "CONFIG_TCP_CONG_BBR=y" .config || echo "WARNING: BBR not built-in!"
+    grep -q "CONFIG_BROADCOM_PHY=y" .config || { echo "FATAL: Broadcom PHY not built-in!"; return 1; }
 
     make -s kernelrelease > version
     echo "Prepared linux version: $(<version)"
@@ -178,7 +211,7 @@ prepare() {
 
 build() {
     cd "$_srcname"
-    make -j8 all
+    make CC=clang LLVM=1 -j$(nproc) all
 }
 
 _package() {
@@ -227,6 +260,9 @@ _package-headers() {
     install -Dt "$builddir/kernel" -m644 kernel/Makefile
     install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
     cp -t "$builddir" -a scripts
+
+    echo "Installing objtool..."
+    install -Dt "$builddir/tools/objtool" -m755 tools/objtool/objtool
 
     echo "Installing headers..."
     cp -t "$builddir" -a include

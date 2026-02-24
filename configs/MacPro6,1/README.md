@@ -4,7 +4,7 @@
 
 | Component | Details | Kernel Driver | Config Option |
 |-----------|---------|--------------|---------------|
-| **CPU** | Intel Xeon E5-1620 v2 to E5-2697 v2 (Ivy Bridge-EP) | — | `-march=ivybridge -O3` via KCFLAGS |
+| **CPU** | Intel Xeon E5-1620 v2 to E5-2697 v2 (Ivy Bridge-EP) | — | CachyOS base + `-march=ivybridge -O3` via KCFLAGS |
 | **GPU** | 2x AMD FirePro D300/D500/D700 (Tahiti XT, GCN 1.0 / Southern Islands, PCI `1002:6798`) | `amdgpu` | `CONFIG_DRM_AMDGPU=y`, `CONFIG_DRM_AMDGPU_SI=y` |
 | **Ethernet** | Broadcom BCM57762 Dual Gigabit | `tg3` | `CONFIG_TIGON3=y` |
 | **Wi-Fi** | Broadcom BCM4360 802.11ac | `wl` (proprietary) | Out-of-tree: `broadcom-wl-dkms` (AUR) |
@@ -17,6 +17,14 @@
 | **NVMe** | Aftermarket via PCIe adapter (common upgrade) | `nvme` | `CONFIG_BLK_DEV_NVME=y` |
 | **Bluetooth** | Broadcom (via USB) | `btusb` | `CONFIG_BT_HCIBTUSB=y` |
 | **Boot** | EFI | — | `CONFIG_EFI=y`, `CONFIG_EFI_STUB=y` |
+
+## Performance Patches
+
+Built on CachyOS 7.0 patch set:
+- **BORE** scheduler (Burst-Oriented Response Enhancer)
+- **BBR3** TCP congestion control
+- CachyOS kernel tweaks and fixes
+- HDMI improvements
 
 ## GPU Details
 
