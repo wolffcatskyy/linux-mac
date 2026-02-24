@@ -178,9 +178,9 @@ The modprobe config (`/etc/modprobe.d/macpro-gpu.conf`) ensures these persist af
 
 ## macOS Tahoe in KVM
 
-This kernel includes KVM support. macOS Tahoe runs in QEMU with full host GPU acceleration underneath -- the host uses amdgpu with Mesa's radeonsi (OpenGL 4.6) and RADV (Vulkan 1.3+) at native speed.
+This kernel includes KVM support. macOS Tahoe runs in QEMU on top of the accelerated amdgpu kernel driver -- the same driver stack powering the Linux host. The guest runs on real GPU hardware through KVM.
 
-The macOS guest currently uses virtio-vga (no 3D inside the VM). Paravirtualized GPU for the guest (PVG -- translating Metal commands through Mesa on the host) is a separate research effort. See [pvg-linux.md](pvg-linux.md) for details.
+For exposing Metal/3D to the guest (PVG -- paravirtualizing Metal commands through Mesa on the host), see [pvg-linux.md](pvg-linux.md).
 
 ## Compared to macOS (OCLP)
 
