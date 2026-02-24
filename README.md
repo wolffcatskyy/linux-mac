@@ -52,6 +52,14 @@ Built on the CachyOS 7.0 patch set:
 - **CachyOS tweaks** — kernel optimizations
 - **HDMI improvements** — display fixes
 
+## Documentation
+
+- [GPU Acceleration Guide](docs/gpu-acceleration.md) -- full stack explainer, what works, performance tuning, roadmap
+- [Mesa Setup](docs/mesa.md) -- driver config, environment variables, multi-GPU
+- [macOS Tahoe KVM](docs/kvm-macos.md) -- run macOS in a VM on this kernel
+- [PVG Roadmap](docs/pvg-linux.md) -- GPU acceleration for macOS VMs
+- [CachyOS ISO](https://github.com/wolffcatskyy/cachyos-macpro-iso) -- ready-to-build installer ISO
+
 ## Roadmap
 
 | Status | Milestone |
