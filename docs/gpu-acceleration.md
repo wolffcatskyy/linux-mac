@@ -24,7 +24,7 @@ Every layer is open-source, actively maintained, and improving with each release
 | FirePro D500 | 3GB GDDR5 | Tahiti | 1.0 (SI) | `1002:6798` | 1792 |
 | FirePro D700 | 6GB GDDR5 | Tahiti XT | 1.0 (SI) | `1002:6798` | 2048 (32 CUs) |
 
-All are GCN 1.0 (Southern Islands). The `amdgpu` kernel driver handles them with `amdgpu.si_support=1`. The older `radeon` driver also supports them but lacks modern features like Vulkan.
+All are GCN 1.0 (Southern Islands). The `amdgpu` kernel driver handles them with `amdgpu.si_support=1`. This kernel does not include the legacy `radeon` driver.
 
 ## What Works Today
 
@@ -155,7 +155,7 @@ The linux-macpro61 kernel and ISO set these automatically:
 
 ```
 amdgpu.si_support=1    # Enable Southern Islands in amdgpu
-radeon.si_support=0    # Disable Southern Islands in radeon (avoid conflicts)
+# radeon driver is not built into this kernel — no conflict possible
 amdgpu.dc=0            # Display Core off (SI uses legacy display path)
 ```
 
@@ -172,7 +172,7 @@ The modprobe config (`/etc/modprobe.d/macpro-gpu.conf`) ensures these persist af
 | Done | OpenCL | Via rusticl (Mesa) |
 | Done | Multi-GPU | Both GPUs accessible, DRI_PRIME offload |
 | Done | DP audio | HDMI/DP audio via amdgpu |
-| Investigating | macOS GPU passthrough | PVG (ParavirtualizedGraphics) for KVM — see [pvg-linux.md](pvg-linux.md) |
+| Investigating | macOS GPU paravirtualization | PVG (ParavirtualizedGraphics) for KVM — Metal commands translated through Mesa on host. See [pvg-linux.md](pvg-linux.md) |
 | Not possible | ROCm / HIP | AMD hardware requirement: GCN 3.0+ |
 | Not possible | HEVC / VP9 / AV1 decode | Hardware limitation |
 
