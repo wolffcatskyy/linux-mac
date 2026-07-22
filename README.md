@@ -1,10 +1,12 @@
 # linux-mac
 
+> **Status: Maintained** — This repo is actively relevant for Mac Pro 6,1 users. Community testing and contributions welcome.
+
 Custom Linux kernel for the Mac Pro 6,1 (Late 2013). CachyOS-based with BORE scheduler, built-in drivers, embedded GPU firmware — boots to desktop with no initramfs required.
 
 ## What This Is
 
-A kernel config and PKGBUILD for Linux 7.0 targeting Mac Pro 6,1 hardware. CachyOS 7.0 base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
+A kernel config and PKGBUILD for the latest CachyOS kernel targeting Mac Pro 6,1 hardware. CachyOS kernel base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
 
 - **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
 - **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
@@ -46,7 +48,7 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 
 ## CachyOS Patches
 
-Built on the CachyOS 7.0 patch set:
+Built on the CachyOS patch set:
 - **BORE** — Burst-Oriented Response Enhancer scheduler
 - **BBR3** — Google TCP congestion control v3
 - **CachyOS tweaks** — kernel optimizations
@@ -64,7 +66,7 @@ Built on the CachyOS 7.0 patch set:
 
 | Status | Milestone |
 |--------|-----------|
-| Done | CachyOS 7.0 base with BORE, BBR3, built-in amdgpu |
+| Done | CachyOS kernel base with BORE, BBR3, built-in amdgpu |
 | Done | All GPU variants, verified against lspci |
 | Done | KVM + macOS Tahoe virtualization |
 | Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/wolffcatskyy/cachyos-macpro-iso) |
@@ -81,7 +83,7 @@ Built on the CachyOS 7.0 patch set:
 
 2. **Cold boot only** - Apple EFI needs full power cycle for GPU init. The package masks \`reboot.target\` and aliases \`reboot\` to \`poweroff\` automatically.
 
-3. **Boot entries** - Default: \`linux-macpro61.conf\` (custom kernel), fallback: \`arch-6.19.conf\` (stock).
+3. **Boot entries** - Default: \`linux-macpro61.conf\` (custom kernel), fallback: \`arch-*.conf\` (stock kernel, version at time of build).
 
 ## License
 
