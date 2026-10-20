@@ -17,6 +17,9 @@ alias reboot='echo "Mac Pro 6,1 requires cold boot for GPU init. Use: sudo power
 ALIAS
     chmod 644 /etc/profile.d/no-reboot.sh
 
+    echo '>>> smcFanControl CE included: sudo systemctl enable --now smcfan-ce.service'
+    echo '>>> Disable competing fan controllers before enabling it.'
+
     echo '>>> Mac Pro 6,1: reboot disabled (Apple EFI needs cold boot for GPU).'
     echo '>>> Use "sudo poweroff" then press power button.'
 }
@@ -29,4 +32,9 @@ post_remove() {
     # Restore reboot capability
     systemctl unmask reboot.target 2>/dev/null
     rm -f /etc/profile.d/no-reboot.sh
+}
+
+pre_remove() {
+    # Release manual SMC control while the packaged executable still exists.
+    systemctl disable --now smcfan-ce.service 2>/dev/null || true
 }

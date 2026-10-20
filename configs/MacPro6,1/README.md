@@ -54,7 +54,7 @@ The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). I
 | Sleep/Wake | ❌ Disabled | Explicitly disabled in kernel config |
 | NVMe + TRIM | ✅ Works | Built-in; enable `fstrim.timer` or `discard` mount option |
 | Bluetooth | ✅ Works | Via btusb |
-| Fan Control | ⚠️ Requires setup | Via applesmc; install `macfanctld` (AUR) for automatic control |
+| Fan Control | Bundled | smcFanControl CE maximum-RPM service via applesmc |
 | Temperature Sensors | ✅ Works | Via applesmc + hwmon |
 
 ## Known Issues

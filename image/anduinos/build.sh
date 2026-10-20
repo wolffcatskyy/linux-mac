@@ -121,6 +121,9 @@ mkdir -p "$OVERLAY_DIR"
 # Copy common overlay
 cp -r "$COMMON_DIR/overlay/"* "$OVERLAY_DIR/" 2>/dev/null || true
 
+# Stage and enable our Linux fan controller in the target overlay only.
+DESTDIR="$OVERLAY_DIR" bash "$PROJECT_ROOT/fan-control/install.sh"
+
 # Copy macOS Tahoe KVM toolkit
 if [ -d "$TAHOE_DIR" ]; then
     mkdir -p "$OVERLAY_DIR/opt/macos-tahoe-kvm"

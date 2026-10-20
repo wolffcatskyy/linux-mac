@@ -19,7 +19,7 @@ The ISO ships with:
 - **Mesa 26.1-dev** with RADV Vulkan — latest GCN 1.0 fixes, full GPU acceleration
 - **macOS Tahoe KVM** — desktop icon, one-click setup, auto-downloads recovery directly from Apple
 - **OpenCore.qcow2** — pre-configured for macOS Tahoe on Ivy Bridge-EP KVM
-- **Fan control** — macfanctld with Mac Pro 6,1 curve profiles
+- **Fan control** — bundled smcFanControl CE, fixed at the SMC-reported maximum RPM
 - **Sysctl tuning** — kvm.ignore_msrs, network, memory optimizations
 - **Boot entries** — pre-configured for Mac Pro 6,1 EFI
 - **No configuration required** — boot USB, install, done
