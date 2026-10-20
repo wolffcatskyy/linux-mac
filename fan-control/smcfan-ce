@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""smcFanControl CE Linux backend: MacPro6,1 chassis fan at SMC maximum."""
+import argparse
+import json
+from pathlib import Path
+import signal
+import sys
+import threading
+
+
+class Fan:
+    def __init__(self, root=Path('/sys')):
+        self.root = Path(root)
+        if (self.root / 'class/dmi/id/product_name').read_text().strip() != 'MacPro6,1':
+            raise ValueError('Only physical MacPro6,1 hardware is supported')
+        matches = [p for p in (self.root / 'devices/platform').glob('applesmc.*')
+                   if (p / 'fan1_max').exists()]
+        if len(matches) != 1:
+            raise ValueError('Expected exactly one Apple SMC controller')
+        self.path = matches[0]
+        if (self.path / 'fan2_input').exists():
+            raise ValueError('Expected the single MacPro6,1 chassis fan')
+
+    def read(self, field):
+        return int((self.path / ('fan1_' + field)).read_text().strip())
+
+    def write(self, field, value):
+        (self.path / ('fan1_' + field)).write_text(str(value) + '\n')
+
+    def status(self):
+        return {k: self.read(k) for k in ('input', 'output', 'min', 'max', 'manual')}
+
+    def maximum(self):
+        maximum, minimum = self.read('max'), self.read('min')
+        if not 0 < minimum <= maximum <= 10000:
+            raise ValueError('Invalid SMC fan limits; refusing guessed RPM')
+        self.write('output', maximum)
+        self.write('manual', 1)
+        if self.read('output') != maximum or self.read('manual') != 1:
+            raise OSError('SMC fan target/mode readback mismatch')
+
+    def automatic(self):
+        self.write('manual', 0)
+        if self.read('manual') != 0:
+            raise OSError('Automatic-mode readback mismatch')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('command', choices=('status', 'max', 'auto', 'daemon'))
+    args = parser.parse_args()
+    fan = Fan()
+    if args.command == 'status':
+        print(json.dumps(fan.status(), sort_keys=True))
+    elif args.command == 'auto':
+        fan.automatic()
+    elif args.command == 'max':
+        try:
+            fan.maximum()
+        except Exception:
+            fan.automatic()
+            raise
+        print(json.dumps(fan.status(), sort_keys=True))
+    else:
+        stop = threading.Event()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, lambda *_: stop.set())
+        try:
+            fan.maximum()
+            print('Maintaining SMC-reported maximum: ' + json.dumps(fan.status()), flush=True)
+            while not stop.wait(2):
+                fan.maximum()
+        finally:
+            # Release control on intentional stop, or on a failed operation.
+            fan.automatic()
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError) as exc:
+        print('smcfan-ce: ' + str(exc), file=sys.stderr)
+        sys.exit(1)

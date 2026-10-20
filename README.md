@@ -29,8 +29,12 @@ A kernel config and PKGBUILD for the latest CachyOS kernel targeting Mac Pro 6,1
 | NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
 | Bluetooth | Working | Broadcom via btusb |
 | KVM | Working | macOS Tahoe virtualization |
-| Fans / Thermal | Working | applesmc + hwmon; install `macfanctld` (AUR) |
+| Fans / Thermal | Working | Bundled smcFanControl CE; holds the SMC-reported maximum RPM |
 | Sleep/Wake | Disabled | Unreliable on this hardware |
+
+## Fan control
+
+smcFanControl CE is included in the kernel package and image overlay for physical MacPro6,1 hardware. It starts during a live hardware installation and at system boot, holds the chassis fan at the SMC-reported maximum, reapplies every two seconds, and returns to automatic control when stopped. The live installer image enables it before login; offline image staging never starts it on the build host. See [installation, migration and rollback](fan-control/README.md).
 
 ## Quick Start
 

@@ -1,0 +1,20 @@
+[Unit]
+Description=smcFanControl CE - MacPro6,1 fan at SMC maximum
+After=systemd-modules-load.service
+Conflicts=macfanctld.service mbpfan.service fancontrol.service macpro-fan-full.service
+ConditionPathExists=/sys/class/dmi/id/product_name
+
+[Service]
+Type=simple
+ExecStartPre=/usr/sbin/modprobe applesmc
+ExecStart=/usr/bin/python3 /usr/bin/smcfan-ce daemon
+ExecStopPost=/usr/bin/python3 /usr/bin/smcfan-ce auto
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/sys/devices/platform
+
+[Install]
+WantedBy=multi-user.target

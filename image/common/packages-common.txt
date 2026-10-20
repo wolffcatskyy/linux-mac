@@ -19,7 +19,7 @@ bridge-utils
 
 # Mac Pro hardware support
 lm-sensors
-fancontrol
+# smcFanControl CE is installed from the bundled fan-control/ source
 
 # General utilities
 wget

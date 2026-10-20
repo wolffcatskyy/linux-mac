@@ -3,7 +3,7 @@
 
 pkgbase=linux-macpro61
 pkgver=7.0rc1
-pkgrel=1
+pkgrel=3
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
 install=linux-macpro61.install
 url='https://github.com/wolffcatskyy/linux-mac'
@@ -38,6 +38,9 @@ source=(
     # no signature for rc tarballs
     "config"
     "99-macpro.conf"
+    "../../fan-control/smcfan-ce"
+    "../../fan-control/smcfan-ce.service"
+    "../../fan-control/activate.sh"
     # CachyOS 7.0 patches
     "0001-bore.patch"
     "0002-bbr3.patch"
@@ -50,6 +53,9 @@ sha256sums=(
     'SKIP'
     'SKIP'
     'SKIP'
+    '643f24896630940f1b615a9e5cfe3a5e7b3de18a47df400e66130a2f81c3db40'
+    '5112fb4c22e761d17f56c55adf8f27f39ea06b89f6ff6c795be1a3247595f4c0'
+    '83229292ac9e3c95950a10aa207b0a94307c6f7204e1ddf65fff62d3e8ab0f67'
     'SKIP'
     'SKIP'
     'SKIP'
@@ -219,6 +225,7 @@ _package() {
     depends=(
         coreutils
         kmod
+        python
     )
     # No mkinitcpio dependency — everything is built-in
     # No initramfs needed
@@ -241,6 +248,12 @@ _package() {
 
     echo "Installing sysctl config..."
     install -Dm644 "$srcdir/99-macpro.conf" "$pkgdir/etc/sysctl.d/99-macpro.conf"
+
+    # Bundle our userspace Apple SMC controller; no commercial dependency.
+    install -Dm755 "$srcdir/smcfan-ce" "$pkgdir/usr/bin/smcfan-ce"
+    install -Dm644 "$srcdir/smcfan-ce.service" "$pkgdir/usr/lib/systemd/system/smcfan-ce.service"
+
+    install -Dm755 "$srcdir/activate.sh" "$pkgdir/usr/lib/smcfan-ce/activate.sh"
 
     # Skip boot entry installation — user manages their own boot entry
     # See README for systemd-boot setup instructions
