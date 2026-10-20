@@ -34,7 +34,7 @@ A kernel config and PKGBUILD for the latest CachyOS kernel targeting Mac Pro 6,1
 
 ## Fan control
 
-smcFanControl CE is included in the kernel package and image overlay for physical MacPro6,1 hardware. It holds the chassis fan at the SMC-reported maximum, reapplies every two seconds, and returns to automatic control when stopped. See [installation, migration and rollback](fan-control/README.md).
+smcFanControl CE is included in the kernel package and image overlay for physical MacPro6,1 hardware. It starts during a live hardware installation and at system boot, holds the chassis fan at the SMC-reported maximum, reapplies every two seconds, and returns to automatic control when stopped. The live installer image enables it before login; offline image staging never starts it on the build host. See [installation, migration and rollback](fan-control/README.md).
 
 ## Quick Start
 
