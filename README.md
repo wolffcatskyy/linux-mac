@@ -1,90 +1,21 @@
 # linux-mac
 
-> **Status: Maintained** — This repo is actively relevant for Mac Pro 6,1 users. Community testing and contributions welcome.
+> Archived project — retained for historical reference.
 
-Custom Linux kernel for the Mac Pro 6,1 (Late 2013). CachyOS-based with BORE scheduler, built-in drivers, embedded GPU firmware — boots to desktop with no initramfs required.
+This repository explored running macOS on Linux/KVM on the Mac Pro 6,1, with a custom CachyOS-based kernel configuration and supporting packaging.
 
-## What This Is
+The kernel and Mac Pro hardware work here remain the useful part of the project. The experimental macOS GPU-paravirtualization roadmap has been removed because it was superseded by [reims-vgpu](https://github.com/steelbrain/reims-vgpu), which provides the working PVG host implementation and Linux Vulkan backend.
 
-A kernel config and PKGBUILD for the latest CachyOS kernel targeting Mac Pro 6,1 hardware. CachyOS kernel base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
+For the background and hardware context that motivated this work, see [Mac Pro: From Trash Can to AI Workstation](https://kovasky.me/blogs/mac_pro_trashcan_ai/).
 
-- **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
-- **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
-- **KVM built-in** — run macOS Tahoe in QEMU
-- **NVMe + TRIM** — aftermarket NVMe drives work out of the box
+This repository is no longer actively developed. New macOS VM GPU work should use Reims instead.
 
-## Hardware Support
+## What remains
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| GPU (D300/D500/D700) | Working | amdgpu built-in, radeonsi/RADV via Mesa |
-| Display (DP/HDMI) | Working | Via amdgpu + DC |
-| Vulkan / OpenGL | Working | Mesa RADV / radeonsi |
-| GPU Compute | Limited | OpenCL via rusticl only — no ROCm for Southern Islands |
-| Ethernet | Working | Both ports via tg3 + Broadcom PHY |
-| Wi-Fi | Proprietary | `broadcom-wl-dkms` (AUR) + headers package |
-| Audio | Working | Intel HDA + Cirrus CS4206, HDMI/DP via amdgpu |
-| USB 3.0 | Working | xHCI |
-| Thunderbolt 2 | Partial | Works with log spam |
-| NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
-| Bluetooth | Working | Broadcom via btusb |
-| KVM | Working | macOS Tahoe virtualization |
-| Fans / Thermal | Working | applesmc + hwmon; install `macfanctld` (AUR) |
-| Sleep/Wake | Disabled | Unreliable on this hardware |
-
-## Quick Start
-
-```bash
-git clone https://github.com/wolffcatskyy/linux-mac.git
-cd linux-mac/packaging/arch
-makepkg -s
-sudo pacman -U linux-macpro61-*.pkg.tar.zst
-sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kernels
-```
-
-## Important
-
-**Always power off (not reboot) when switching kernels.** Apple EFI needs a cold boot to reinitialize the GPU.
-
-## CachyOS Patches
-
-Built on the CachyOS patch set:
-- **BORE** — Burst-Oriented Response Enhancer scheduler
-- **BBR3** — Google TCP congestion control v3
-- **CachyOS tweaks** — kernel optimizations
-- **HDMI improvements** — display fixes
-
-## Documentation
-
-- [GPU Acceleration Guide](docs/gpu-acceleration.md) -- full stack explainer, what works, performance tuning, roadmap
-- [Mesa Setup](docs/mesa.md) -- driver config, environment variables, multi-GPU
-- [macOS Tahoe KVM](docs/kvm-macos.md) -- run macOS in a VM on this kernel
-- [PVG Roadmap](docs/pvg-linux.md) -- GPU acceleration for macOS VMs
-- [CachyOS ISO](https://github.com/wolffcatskyy/cachyos-macpro-iso) -- ready-to-build installer ISO
-
-## Roadmap
-
-| Status | Milestone |
-|--------|-----------|
-| Done | CachyOS kernel base with BORE, BBR3, built-in amdgpu |
-| Done | All GPU variants, verified against lspci |
-| Done | KVM + macOS Tahoe virtualization |
-| Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/wolffcatskyy/cachyos-macpro-iso) |
-| Done | Driver trimming — removed ~3000 unused config options for faster builds |
-
-
-## Boot Configuration
-
-**systemd-boot** with ESP at \`/boot/efi/\` (FAT32).
-
-### Gotchas
-
-1. **ESP vs /boot** - pacman installs to \`/boot/\` (root partition) but systemd-boot reads from \`/boot/efi/\` (ESP). The package install hook syncs automatically.
-
-2. **Cold boot only** - Apple EFI needs full power cycle for GPU init. The package masks \`reboot.target\` and aliases \`reboot\` to \`poweroff\` automatically.
-
-3. **Boot entries** - Default: \`linux-macpro61.conf\` (custom kernel), fallback: \`arch-*.conf\` (stock kernel, version at time of build).
+- Mac Pro 6,1 kernel configuration and hardware-specific settings
+- Arch packaging and kernel build patches
+- Supporting scripts and configuration files
 
 ## License
 
-GPL-2.0 (same as the Linux kernel)
+GPL-2.0. See [LICENSE](LICENSE).
